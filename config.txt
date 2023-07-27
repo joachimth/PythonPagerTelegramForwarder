@@ -1,0 +1,20 @@
+[Frequencies]
+freq = "171.300M" # Frekvensen som skal modtages
+prot = "POCSAG2400 POCSAG1200" # Protokoller som skal afkodes. Flere protokoller kan tilføjes adskilt med mellemrum
+min_len = "10" # Minimum længde for beskeder, der skal videresendes
+tel_ID = "your-telegram-api-id" # Dit telegram bot API ID
+rec_ID = "your-telegram-recipient-id" # Telegram modtager ID
+
+[rtl_fm]
+device_index = "0" # Enhedsindex for rtl_fm
+sample_rate = "22050" # Sample rate for rtl_fm
+enable_option = "-E dc" # Aktiver yderligere optioner for rtl_fm
+gain = "42" # Gain for rtl_fm
+ppm_error = "33" # PPM-fejl for rtl_fm
+squelch_level = "0" # Squelch-niveau for rtl_fm
+
+[multimon-ng]
+input_file = "/dev/stdin" # Input fil for multimon-ng
+
+[Encoding]
+encoding_format = "iso-8859-1" # Tekst dekodningsformat. F.eks. "iso-8859-1", "utf-8" osv.
