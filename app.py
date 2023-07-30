@@ -23,7 +23,7 @@ def start_multimon(cfg):
     prots = ' -a '.join(prots)
     if prots:
         prots = '-a ' + prots
-    bot = Bot(cfg.get('Frequencies'),os.getenv('TELEGRAM_API')
+    bot = Bot(cfg.get('Frequencies'),os.getenv('TELEGRAM_API'))
     d = collections.deque(maxlen=100)
     call = "rtl_fm {} -d{} -f {} -s {} | multimon-ng -t raw {} -f alpha -t raw /dev/stdin -".format(cfg.get('rtl_fm', 'enable_option'), cfg.get('rtl_fm', 'device_index'), cfg.get('Frequencies', 'freq'), cfg.get('rtl_fm', 'sample_rate'), prots)
     print (call)
