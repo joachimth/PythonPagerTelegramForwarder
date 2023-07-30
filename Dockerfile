@@ -25,16 +25,19 @@ RUN git clone git://git.osmocom.org/rtl-sdr.git && \
     make install && \
     ldconfig
 
-# Clone and build multimon-ng
+# Install additional packages for multimon-ng
 RUN apt-get update && apt-get install -y \
     qtbase5-dev \
     libpulse-dev \
     libx11-dev && \
-    rm -rf /var/lib/apt/lists/* && \
-    git clone https://github.com/EliasOenal/multimon-ng.git && \
-    mkdir multimon-ng/build && \
-    cd multimon-ng/build && \
-    qmake ../multimon-ng.pro PREFIX=/usr/local && \
+    rm -rf /var/lib/apt/lists/* 
+
+# Clone and build multimon-ng
+RUN git clone https://github.com/EliasOenal/multimon-ng.git && \
+    cd multimon-ng && \
+    mkdir build && \
+    cd build && \
+    cmake .. && \
     make && \
     make install
 
