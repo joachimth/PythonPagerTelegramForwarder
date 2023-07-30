@@ -5,16 +5,16 @@ services:
   - docker
 
 before_install:
-  - docker build -t $YOUR_DOCKERHUB_USERNAME/PythonPagerTelegramForwarder .
+  - docker build -t $YOUR_DOCKERHUB_USERNAME/pythonpagertelegramforwarder .
 
 script:
-  - docker images $YOUR_DOCKERHUB_USERNAME/PythonPagerTelegramForwarder
+  - docker images $YOUR_DOCKERHUB_USERNAME/pythonpagertelegramforwarder
 
 before_deploy:
   - docker login -u $YOUR_DOCKERHUB_USERNAME -p $YOUR_DOCKERHUB_PASSWORD
 
 deploy:
   provider: script
-  script: docker push $YOUR_DOCKERHUB_USERNAME/PythonPagerTelegramForwarder
+  script: docker push $YOUR_DOCKERHUB_USERNAME/pythonpagertelegramforwarder
   on:
     branch: main
