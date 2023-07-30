@@ -6,6 +6,19 @@ FROM python:3.8-slim-buster
 # Set working directory
 WORKDIR /app
 
+# ... tidligere kommandoer ...
+
+RUN apt-get update && apt-get install -y \
+    cmake \
+    build-essential \
+    libusb-1.0-0-dev \
+    git \
+    python3 \
+    python3-pip \
+    libatlas-base-dev
+
+# ... resten af din Dockerfile ...
+
 # Install rtl-sdr and multimon-ng dependencies
 RUN apt-get update && \
     apt-get install -y \
