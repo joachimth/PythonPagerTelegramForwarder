@@ -1,6 +1,6 @@
 [Frequencies]
 freq = "171.300M"
-prot = "POCSAG2400 POCSAG1200"
+prot = POCSAG2400
 min_len = "5"
 
 [rtl_fm]
