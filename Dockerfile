@@ -6,26 +6,12 @@ FROM python:3.8-slim-buster
 # Set working directory
 WORKDIR /app
 
-# ... tidligere kommandoer ...
-
+# Install rtl-sdr, multimon-ng dependencies, and other necessary packages
 RUN apt-get update && apt-get install -y \
     cmake \
     build-essential \
     libusb-1.0-0-dev \
     git \
-    python3 \
-    python3-pip \
-    libatlas-base-dev
-
-# ... resten af din Dockerfile ...
-
-# Install rtl-sdr and multimon-ng dependencies
-RUN apt-get update && \
-    apt-get install -y \
-    git \
-    cmake \
-    build-essential \
-    libusb-1.0-0-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Clone and build rtl-sdr
@@ -50,7 +36,7 @@ COPY requirements.txt /app/requirements.txt
 RUN pip install -r requirements.txt
 
 # Copy source code
-COPY pager_telegram_forwarder.py config.txt /app/
+COPY app.py config.txt /app/
 
 # Command to run the application
-CMD [ "python", "-u", "pager_telegram_forwarder.py" ]
+CMD [ "python", "-u", "app.py" ]
