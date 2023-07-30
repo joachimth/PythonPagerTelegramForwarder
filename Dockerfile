@@ -27,7 +27,7 @@ RUN git clone git://git.osmocom.org/rtl-sdr.git && \
 
 # Clone and build multimon-ng
 RUN apt-get update && apt-get install -y \
-    qt5-qmake \
+    qmake \
     libpulse-dev \
     libx11-dev && \
     rm -rf /var/lib/apt/lists/* && \
