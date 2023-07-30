@@ -1,5 +1,7 @@
 # Python Pager Telegram Forwarder
-#Test2
+
+joachimth/PythonPagerTelegramForwarder
+
 Denne Python-baserede applikation modtager data fra en RTL-SDR radio, dekoder meddelelser ved hjælp af `multimon-ng`, og sender beskeder til en bestemt Telegram-bruger eller -gruppe ved hjælp af en Telegram bot.
 
 ## Fil- og Mappestruktur
