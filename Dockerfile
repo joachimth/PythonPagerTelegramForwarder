@@ -46,7 +46,9 @@ COPY requirements.txt /app/requirements.txt
 RUN pip install -r requirements.txt
 
 # Copy source code
-COPY app.py config.txt /app/
+COPY app.py /app/app.py
+COPY config.txt /app/config.txt
+
 
 # Command to run the application
-CMD [ "python", "-u", "/app/app.py" ]
+CMD [ "python", "-u", "app.py" ]
