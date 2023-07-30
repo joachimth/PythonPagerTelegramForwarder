@@ -49,4 +49,4 @@ RUN pip install -r requirements.txt
 COPY app.py config.txt /app/
 
 # Command to run the application
-CMD [ "python", "-u", "app.py" ]
+CMD [ "python", "-u", "/app/app.py" ]
