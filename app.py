@@ -44,8 +44,12 @@ def start_multimon(cfg):
             if int(len(msg)) < int(cfg.get('Frequencies', 'min_len')):
                 continue
             time = strftime("%Y-%m-%d %H:%M", gmtime())
-            print (msg)
-            bot.send_message(cfg.get('Frequencies'), os.getenv('TELEGRAM_REC') , 'Time: ' + time + '\nMessage: ' + msg)
+            #print (msg)
+            logger.info(f"msg: {msg}")
+            chat_id = os.getenv('TELEGRAM_REC')
+            logger.info(f"Chat ID: {chat_id}")
+            #bot.send_message(chat_id, 'Time: ' + time + '\nMessage: ' + msg)
+            bot.send_message(os.getenv('TELEGRAM_REC') , 'Time: ' + time + '\nMessage: ' + msg)
         except Exception as e:
             fail_count += 1
             logger.error("An error occurred: {}, Line: {}".format(e, sys.exc_info()[-1].tb_lineno))
