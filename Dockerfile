@@ -1,10 +1,18 @@
 # Dockerfile
+#tel_ID = "your-telegram-api-id" # Dit telegram bot API ID
+#rec_ID = "your-telegram-recipient-id" # Telegram modtager ID
 
 # Base image
 FROM python:3.8-slim-buster
 
 # Set working directory
 WORKDIR /app
+
+VOLUME /app/logs
+
+# Set environment variables
+ENV TELEGRAM_API=min_default_telegram_api
+ENV TELEGRAM_REC=min_default_telegram_rec
 
 # Install necessary packages
 RUN apt-get update && apt-get install -y \
