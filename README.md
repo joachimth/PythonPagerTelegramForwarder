@@ -1,9 +1,16 @@
 # Python Pager Telegram Forwarder
 
+
+[![Build Status](https://travis-ci.com/joachimth/pythonpagertelegramforwarder.svg?branch=main)](https://travis-ci.com/joachimth/pythonpagertelegramforwarder)
+
 joachimth/PythonPagerTelegramForwarder
 
-PythonPagerTelegramForwarder
 pythonpagertelegramforwarder
+
+```Docker Pull
+docker pull joachimth/pythonpagertelegramforwarder:latest
+```
+
 
 Denne Python-baserede applikation modtager data fra en RTL-SDR radio, dekoder meddelelser ved hjælp af `multimon-ng`, og sender beskeder til en bestemt Telegram-bruger eller -gruppe ved hjælp af en Telegram bot.
 
