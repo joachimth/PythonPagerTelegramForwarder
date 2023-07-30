@@ -2,8 +2,6 @@
 freq = "171.300M" # Frekvensen som skal modtages
 prot = "POCSAG2400 POCSAG1200" # Protokoller som skal afkodes. Flere protokoller kan tilføjes adskilt med mellemrum
 min_len = "10" # Minimum længde for beskeder, der skal videresendes
-tel_ID = "your-telegram-api-id" # Dit telegram bot API ID
-rec_ID = "your-telegram-recipient-id" # Telegram modtager ID
 
 [rtl_fm]
 device_index = "0" # Enhedsindex for rtl_fm
