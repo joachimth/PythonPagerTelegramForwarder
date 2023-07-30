@@ -23,7 +23,7 @@ def start_multimon(cfg):
     prots = ' -a '.join(prots)
     if prots:
         prots = '-a ' + prots
-    bot = Bot(cfg.get('Frequencies', 'tel_ID'))
+    bot = Bot(cfg.get('Frequencies'),os.getenv('TELEGRAM_API')
     d = collections.deque(maxlen=100)
     call = "rtl_fm {} -d{} -f {} -s {} | multimon-ng -t raw {} -f alpha -t raw /dev/stdin -".format(cfg.get('rtl_fm', 'enable_option'), cfg.get('rtl_fm', 'device_index'), cfg.get('Frequencies', 'freq'), cfg.get('rtl_fm', 'sample_rate'), prots)
     print (call)
@@ -45,7 +45,7 @@ def start_multimon(cfg):
                 continue
             time = strftime("%Y-%m-%d %H:%M", gmtime())
             print (msg)
-            bot.send_message(cfg.get('Frequencies', 'rec_ID'), 'Time: ' + time + '\nMessage: ' + msg)
+            bot.send_message(cfg.get('Frequencies'), os.getenv('TELEGRAM_REC') , 'Time: ' + time + '\nMessage: ' + msg)
         except Exception as e:
             fail_count += 1
             logger.error("An error occurred: {}, Line: {}".format(e, sys.exc_info()[-1].tb_lineno))
