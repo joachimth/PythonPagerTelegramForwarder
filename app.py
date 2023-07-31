@@ -21,8 +21,8 @@ logger = create_logger()
 def start_multimon(cfg):
     prots = cfg.get('Frequencies', 'prot').split()
     prots = ' -a '.join(prots)
-    if prots:
-        prots = '-a ' + prots
+    #if prots:
+    #    prots = '-a ' + prots
     
     bot = Bot(os.getenv('TELEGRAM_API'))
     d = collections.deque(maxlen=100)
