@@ -1,7 +1,6 @@
 # Python Pager Telegram Forwarder
 
-
-[![Build Status](https://travis-ci.com/joachimth/pythonpagertelegramforwarder.svg?branch=main)](https://travis-ci.com/joachimth/pythonpagertelegramforwarder)
+[![Build Status](https://app.travis-ci.com/joachimth/PythonPagerTelegramForwarder.svg?branch=main)](https://app.travis-ci.com/joachimth/PythonPagerTelegramForwarder)
 
 joachimth/PythonPagerTelegramForwarder
 
