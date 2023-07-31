@@ -10,7 +10,7 @@ from logging.handlers import RotatingFileHandler
 
 def create_logger():
     logger = logging.getLogger('my_logger')
-    handler = RotatingFileHandler('logs/error.log', maxBytes=2000, backupCount=10)
+    handler = RotatingFileHandler('/logs/error.log', maxBytes=4000, backupCount=5)
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     handler.setFormatter(formatter)
     logger.addHandler(handler)
@@ -38,6 +38,7 @@ def start_multimon(cfg):
         try:
             output = mm.stdout.readline().decode(decode_format)
             print (output)
+            logger.info(f"raw output: {output}")
             if "Alpha" not in output:
                 continue
             output = output.replace("<NUL>", "")
