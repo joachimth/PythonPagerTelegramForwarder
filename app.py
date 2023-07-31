@@ -20,15 +20,16 @@ logger = create_logger()
 
 def start_multimon(cfg):
     prots = cfg.get('Frequencies', 'prot').split()
-    prots = ' -a '.join(prots)
-    #if prots:
-    #    prots = '-a ' + prots
+    #prots = ' -a '.join(prots)
+    if prots:
+        prots = '-a ' + prots
     
     bot = Bot(os.getenv('TELEGRAM_API'))
     d = collections.deque(maxlen=100)
-    call = "rtl_fm {} -d{} -f {} -s {} | multimon-ng -t raw {} -f alpha -t raw /dev/stdin -".format(cfg.get('rtl_fm', 'enable_option'), cfg.get('rtl_fm', 'device_index'), cfg.get('Frequencies', 'freq'), cfg.get('rtl_fm', 'sample_rate'), prots)
+    call = "rtl_fm -d{} -f {} -s {} | multimon-ng -t raw {} -f alpha -t raw /dev/stdin -".format(cfg.get('rtl_fm', 'device_index'), cfg.get('Frequencies', 'freq'), cfg.get('rtl_fm', 'sample_rate'), prots)
+    #        call = "rtl_fm -d0 -f "+freq+" -s 22050 | multimon-ng -t raw -a "+prot+" -f alpha -t raw /dev/stdin -"
     logger.info(f"sh call message: {call}")
-    #print (call)
+    print (call)
     time = strftime("%Y-%m-%d %H:%M", gmtime())
     bot.send_message(os.getenv('TELEGRAM_REC') , 'Time: ' + time + '\nCall Message: ' + call)
     mm = subprocess.Popen(call, shell=True, stdout=subprocess.PIPE)
