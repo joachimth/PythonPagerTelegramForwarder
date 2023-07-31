@@ -29,6 +29,7 @@ def start_multimon(cfg):
     call = "rtl_fm {} -d{} -f {} -s {} | multimon-ng -t raw {} -f alpha -t raw /dev/stdin -".format(cfg.get('rtl_fm', 'enable_option'), cfg.get('rtl_fm', 'device_index'), cfg.get('Frequencies', 'freq'), cfg.get('rtl_fm', 'sample_rate'), prots)
     logger.info(f"sh call message: {call}")
     #print (call)
+    time = strftime("%Y-%m-%d %H:%M", gmtime())
     bot.send_message(os.getenv('TELEGRAM_REC') , 'Time: ' + time + '\nCall Message: ' + call)
     mm = subprocess.Popen(call, shell=True, stdout=subprocess.PIPE)
     decode_format = cfg.get('Encoding', 'encoding_format')
