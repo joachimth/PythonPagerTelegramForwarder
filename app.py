@@ -20,7 +20,7 @@ logger = create_logger()
 
 def start_multimon(cfg):
     prots = cfg.get('Frequencies', 'prot').split()
-    #prots = ' -a '.join(prots)
+    prots = ' -a '.join(prots)
     if prots:
         prots = '-a ' + prots
     
