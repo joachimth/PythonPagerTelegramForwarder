@@ -1,18 +1,18 @@
 [Frequencies]
-freq = "171.300M"
+freq = 171.300M
 prot = POCSAG2400
-min_len = "5"
+min_len = 5
 
 [rtl_fm]
-device_index = "0"
-sample_rate = "22050"
-enable_option = "-E dc"
-gain = "42"
-ppm_error = "33"
-squelch_level = "0"
+device_index = 0
+sample_rate = 22050
+enable_option = -E dc
+gain = 42
+ppm_error = 33
+squelch_level = 0
 
 [multimon-ng]
-input_file = "/dev/stdin"
+input_file = /dev/stdin
 
 [Encoding]
-encoding_format = "utf-8"
+encoding_format = utf-8
