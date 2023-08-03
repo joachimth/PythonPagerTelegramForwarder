@@ -24,7 +24,7 @@ ENV TELEGRAM_REC=min_default_telegram_rec
 RUN apt-get update && apt-get install -y \
     wget
 
-RUN wget -O  /etc/udev/rules.d/rtl-sdr.rules "https://raw.githubusercontent.com/osmocom/rtl-sdr/master/rtl-sdr.rules"
+RUN wget -O /etc/udev/rules.d/rtl-sdr.rules "https://raw.githubusercontent.com/osmocom/rtl-sdr/master/rtl-sdr.rules"
 
 # Install necessary packages
 RUN apt-get update && apt-get install -y \
