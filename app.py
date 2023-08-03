@@ -26,7 +26,7 @@ def start_multimon(cfg):
     
     bot = Bot(os.getenv('TELEGRAM_API'))
     d = collections.deque(maxlen=100)
-    call = "rtl_fm -E dc -d {} -l {} -g {} -p {} -f {} -s {} - | multimon-ng -t raw {} -f alpha /dev/stdin -".format(cfg.get('rtl_fm', 'device_index'), cfg.get('rtl_fm', 'squelch_level'), cfg.get('rtl_fm', 'gain'), cfg.get('rtl_fm', 'ppm_error'), cfg.get('Frequencies', 'freq'), cfg.get('rtl_fm', 'sample_rate'), prots)
+    call = "rtl_fm -E dc -d {} -l {} -g {} -p {} -f {} -s {} - | multimon-ng -t raw {} -f alpha /dev/stdin".format(cfg.get('rtl_fm', 'device_index'), cfg.get('rtl_fm', 'squelch_level'), cfg.get('rtl_fm', 'gain'), cfg.get('rtl_fm', 'ppm_error'), cfg.get('Frequencies', 'freq'), cfg.get('rtl_fm', 'sample_rate'), prots)
     #        call = "rtl_fm -d0 -f "+freq+" -s 22050 | multimon-ng -t raw -a "+prot+" -f alpha -t raw /dev/stdin -"
     logger.info(f"sh call message: {call}")
     print (call)
@@ -40,17 +40,17 @@ def start_multimon(cfg):
             output = mm.stdout.readline().decode(decode_format)
             print (output)
             logger.info(f"raw output: {output}")
-            #if "Alpha" not in output:
-                #continue
+            if "Alpha" not in output:
+                continue
             output = output.replace("<NUL>", "")
             if output in d:
                 continue
             d.append(output)
-            #msg = output.split("Alpha:", 1)[1]
-            #if int(len(msg)) < int(cfg.get('Frequencies', 'min_len')):
-                #continue
+            msg = output.split("Alpha:", 1)[1]
+            if int(len(msg)) < int(cfg.get('Frequencies', 'min_len')):
+                continue
             time = strftime("%Y-%m-%d %H:%M", gmtime())
-            #print (msg)
+            print (msg)
             logger.info(f"msg: {msg}")
             chat_id = os.getenv('TELEGRAM_REC')
             logger.info(f"Chat ID: {chat_id}")
