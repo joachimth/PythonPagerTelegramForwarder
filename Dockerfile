@@ -24,7 +24,7 @@ ENV TELEGRAM_REC=min_default_telegram_rec
 #RUN apt-get update && apt-get install -y \
     #wget
 #RUN wget -O /etc/udev/rules.d/rtl-sdr.rules "https://raw.githubusercontent.com/osmocom/rtl-sdr/master/rtl-sdr.rules"
-RUN apt-get install rtl-sdr -y
+#RUN apt-get install rtl-sdr -y
 # Install necessary packages
 RUN apt-get update && apt-get install -y \
     cmake \
@@ -51,14 +51,14 @@ RUN apt-get update && apt-get install -y \
 
 # Clone and build rtl-sdr
 #     git checkout 0.6.0 && \
-#RUN git clone git://git.osmocom.org/rtl-sdr.git && \
-    #cd rtl-sdr && \
-    #mkdir build && \
-    #cd build && \
-    #cmake ../ -DINSTALL_UDEV_RULES=ON && \
-    #make && \
-    #make install && \
-    #ldconfig
+RUN git clone git://git.osmocom.org/rtl-sdr.git && \
+    cd rtl-sdr && \
+    mkdir build && \
+    cd build && \
+    cmake ../ -DINSTALL_UDEV_RULES=ON && \
+    make && \
+    make install && \
+    ldconfig
 
 # Install additional packages for multimon-ng
 RUN apt-get update && apt-get install -y \
