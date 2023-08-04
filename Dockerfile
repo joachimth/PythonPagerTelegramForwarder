@@ -21,10 +21,6 @@ ENV TELEGRAM_REC=min_default_telegram_rec
 #libhackrf-dev liblimesuite-dev
 
 #    libusb-1.0-0-dev \
-#RUN apt-get update && apt-get install -y \
-    #wget
-#RUN wget -O /etc/udev/rules.d/rtl-sdr.rules "https://raw.githubusercontent.com/osmocom/rtl-sdr/master/rtl-sdr.rules"
-#RUN apt-get install rtl-sdr -y
 # Install necessary packages
 RUN apt-get update && apt-get install -y \
     cmake \
@@ -75,6 +71,8 @@ RUN git clone https://github.com/EliasOenal/multimon-ng.git && \
     cmake .. && \
     make && \
     make install
+
+RUN wget -O /etc/udev/rules.d/rtl-sdr.rules "https://raw.githubusercontent.com/osmocom/rtl-sdr/master/rtl-sdr.rules"
 
 # Copy requirements.txt and install dependencies
 COPY requirements.txt /app/requirements.txt
