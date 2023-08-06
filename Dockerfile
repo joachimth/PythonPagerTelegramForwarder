@@ -82,6 +82,10 @@ RUN git clone https://github.com/steve-m/kalibrate-rtl.git && \
 
 RUN wget -O /etc/udev/rules.d/rtl-sdr.rules "https://raw.githubusercontent.com/osmocom/rtl-sdr/master/rtl-sdr.rules"
 
+RUN echo "blacklist dvb_usb_rtl28xxu" >> /etc/modprobe.d/blacklist.conf
+RUN echo "blacklist dvb_usb_rtl8xxxu" >> /etc/modprobe.d/blacklist.conf
+RUN echo "blacklist 8192cu" >> /etc/modprobe.d/blacklist.conf
+
 # Copy requirements.txt and install dependencies
 COPY requirements.txt /app/requirements.txt
 RUN pip install -r requirements.txt
