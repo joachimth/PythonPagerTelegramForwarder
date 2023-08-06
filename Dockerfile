@@ -8,7 +8,7 @@ FROM python:3.8-slim-buster
 # Set working directory
 WORKDIR /app
 
-VOLUME /app
+VOLUME /app/logs
 
 # Set environment variables
 ENV TELEGRAM_API=min_default_telegram_api
