@@ -43,7 +43,17 @@ RUN apt-get update && apt-get install -y \
     wget \
     curl \
     htop \
+    coreutils \
+    unzip \
     && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements.txt and install dependencies
+COPY requirements.txt /app/requirements.txt
+RUN pip install -r requirements.txt
+
+# Copy source code
+COPY app.py /app/app.py
+COPY config.txt /app/config.txt
 
 # Clone and build rtl-sdr
 #     git checkout 0.6.0 && \
@@ -55,6 +65,11 @@ RUN git clone git://git.osmocom.org/rtl-sdr.git && \
     make && \
     make install && \
     ldconfig
+
+RUN wget -O /etc/udev/rules.d/rtl-sdr.rules "https://raw.githubusercontent.com/osmocom/rtl-sdr/master/rtl-sdr.rules"
+RUN echo "blacklist dvb_usb_rtl28xxu" >> /etc/modprobe.d/blacklist.conf
+RUN echo "blacklist dvb_usb_rtl8xxxu" >> /etc/modprobe.d/blacklist.conf
+RUN echo "blacklist 8192cu" >> /etc/modprobe.d/blacklist.conf
 
 # Install additional packages for multimon-ng
 RUN apt-get update && apt-get install -y \
@@ -80,20 +95,7 @@ RUN git clone https://github.com/steve-m/kalibrate-rtl.git && \
     make && \
     make install
 
-RUN wget -O /etc/udev/rules.d/rtl-sdr.rules "https://raw.githubusercontent.com/osmocom/rtl-sdr/master/rtl-sdr.rules"
-
-RUN echo "blacklist dvb_usb_rtl28xxu" >> /etc/modprobe.d/blacklist.conf
-RUN echo "blacklist dvb_usb_rtl8xxxu" >> /etc/modprobe.d/blacklist.conf
-RUN echo "blacklist 8192cu" >> /etc/modprobe.d/blacklist.conf
-
-# Copy requirements.txt and install dependencies
-COPY requirements.txt /app/requirements.txt
-RUN pip install -r requirements.txt
-
-# Copy source code
-COPY app.py /app/app.py
-COPY config.txt /app/config.txt
 
 # Command to run the application
-#CMD [ "python", "-u", "app.py" ]
-CMD [ "sleep", "infinity" ]
+CMD [ "python", "-u", "app.py" ]
+#CMD [ "sleep", "infinity" ]
