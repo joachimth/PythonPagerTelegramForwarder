@@ -1,4 +1,5 @@
 import sys
+import time
 import subprocess
 import collections
 import configparser
@@ -78,7 +79,7 @@ if __name__ == "__main__":
         while True:
             try:
                 cfg = load_config()
-                sleep(15)
+                time.sleep(15)
                 start_multimon(cfg)
             except Exception as e:
                 logger.error("An error occurred: {}, Line: {}".format(e, sys.exc_info()[-1].tb_lineno))
