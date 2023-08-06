@@ -72,6 +72,14 @@ RUN git clone https://github.com/EliasOenal/multimon-ng.git && \
     make && \
     make install
 
+# Clone and build kalibrate-rtl
+RUN git clone https://github.com/steve-m/kalibrate-rtl.git && \
+    cd kalibrate-rtl && \
+    ./bootstrap && \
+    ./configure && \
+    make && \
+    make install
+
 RUN wget -O /etc/udev/rules.d/rtl-sdr.rules "https://raw.githubusercontent.com/osmocom/rtl-sdr/master/rtl-sdr.rules"
 
 # Copy requirements.txt and install dependencies
@@ -83,4 +91,5 @@ COPY app.py /app/app.py
 COPY config.txt /app/config.txt
 
 # Command to run the application
-CMD [ "python", "-u", "app.py" ]
+#CMD [ "python", "-u", "app.py" ]
+CMD [ "sh" ]
