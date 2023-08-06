@@ -96,4 +96,4 @@ COPY config.txt /app/config.txt
 
 # Command to run the application
 #CMD [ "python", "-u", "app.py" ]
-CMD [ "sh" ]
+CMD [ "bash", "-c", "'echo $BASH_VERSION'" ]
