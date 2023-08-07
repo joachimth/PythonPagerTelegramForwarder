@@ -7,7 +7,7 @@ min_len = 5
 device_index = 0
 sample_rate = 22050
 enable_option = -E dc
-gain = 45
+gain = 30
 ppm_error = 33
 squelch_level = 0
 
