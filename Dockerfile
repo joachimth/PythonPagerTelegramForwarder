@@ -47,16 +47,7 @@ RUN apt-get update && apt-get install -y \
     unzip \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements.txt and install dependencies
-COPY requirements.txt /app/requirements.txt
-RUN pip install -r requirements.txt
-
-# Copy source code
-COPY app.py /app/app.py
-COPY config.txt /app/config.txt
-
 # Clone and build rtl-sdr
-#     git checkout 0.6.0 && \
 RUN git clone git://git.osmocom.org/rtl-sdr.git && \
     cd rtl-sdr && \
     mkdir build && \
@@ -95,6 +86,13 @@ RUN git clone https://github.com/steve-m/kalibrate-rtl.git && \
     make && \
     make install
 
+# Copy requirements.txt and install dependencies
+COPY requirements.txt /app/requirements.txt
+RUN pip install -r requirements.txt
+
+# Copy source code
+COPY app.py /app/app.py
+COPY config.txt /app/config.txt
 
 # Command to run the application
 CMD [ "python", "-u", "app.py" ]
