@@ -1,6 +1,15 @@
 import subprocess
 import re
 
+def get_gain_from_config():
+    with open("config.txt", "r") as file:
+        content = file.readlines()
+    
+    for line in content:
+        if "gain" in line:
+            return line.split("=")[1].strip()
+    raise ValueError("Gain værdi ikke fundet i config.txt.")
+
 def update_config_file(new_ppm_error):
     with open("config.txt", "r") as file:
         content = file.read()
@@ -33,7 +42,12 @@ def extract_absolute_error(output):
     return match.group(1)
 
 def main():
-    gain = input("Indtast gain (-g værdi): ")
+    try:
+        gain = get_gain_from_config()
+    except ValueError as e:
+        print(f"Fejl: {e}")
+        return
+    
     first_command = f"./kal -s GSM900 -e 0 -g {gain}"
     output1 = run_command(first_command)
 
