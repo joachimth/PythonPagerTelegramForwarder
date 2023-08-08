@@ -98,9 +98,9 @@ COPY app.py /app/app.py
 COPY config.txt /app/config.txt
 COPY flaskapp.py /app/flaskapp.py
 COPY kal_automation.py /app/kal_automation.py
-COPY admin.html /app/admin.html
-COPY login.html /app/login.html
-COPY log.html /app/log.html
+COPY templates/admin.html /app/templates/admin.html
+COPY templates/login.html /app/templates/login.html
+COPY templates/log.html /app/templates/log.html
 COPY init.py /app/init.py
 
 # Command to run the application
