@@ -1,7 +1,7 @@
 [Frequencies]
 freq = 171.300M
 prot = POCSAG512 POCSAG1200 POCSAG2400
-min_len = 5
+min_len = 1
 
 [rtl_fm]
 device_index = 0
