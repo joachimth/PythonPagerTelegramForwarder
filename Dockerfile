@@ -10,6 +10,9 @@ WORKDIR /app
 
 VOLUME /app/logs
 
+# Fortæl Docker at appen lytter på port 5000
+EXPOSE 5000
+
 # Set environment variables
 ENV TELEGRAM_API=min_default_telegram_api
 ENV TELEGRAM_REC=min_default_telegram_rec
