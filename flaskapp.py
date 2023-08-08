@@ -42,7 +42,7 @@ def login():
             return redirect(url_for('admin'))
         else:
             flash('Invalid credentials')
-    return render_template('login.html')
+    return render_template('/app/login.html')
 
 @app.route('/admin', methods=['GET', 'POST'])
 @login_required
@@ -53,14 +53,14 @@ def admin():
     # Load data from config.txt
     config = configparser.ConfigParser()
     config.read('config.txt')
-    return render_template('admin.html', config=config)
+    return render_template('/app/admin.html', config=config)
 
 @app.route('/view_log/<filename>')
 @login_required
 def view_log(filename):
     with open(filename, 'r') as f:
         content = f.read()
-    return render_template('log.html', content=content)
+    return render_template('/app/log.html', content=content)
 
 @app.route('/clear_log/<filename>')
 @login_required
