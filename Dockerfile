@@ -95,5 +95,5 @@ COPY app.py /app/app.py
 COPY config.txt /app/config.txt
 
 # Command to run the application
-CMD [ "python", "-u", "app.py" ]
+CMD [ "python", "-u", "init.py" ]
 #CMD [ "sleep", "infinity" ]
