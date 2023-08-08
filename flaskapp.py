@@ -5,7 +5,7 @@ import os
 
 config = configparser.ConfigParser()
 config.read('config.txt')
-port = int(config['Flask']['port'])
+flask_port = int(config['Flask']['port'])
 
 app = Flask(__name__)
 app.secret_key = "yoursecretkey"
@@ -14,7 +14,7 @@ login_manager.init_app(app)
 login_manager.login_view = 'login'
 
 # Dummy user data - i en reel anvendelse bør en database benyttes
-users = {'admin': {'password': 'password123'}}
+users = {'admin': {'password': 'changeme'}}
 
 class User(UserMixin):
     pass
@@ -74,4 +74,4 @@ def restart_system():
     return "System Restarting..."
 
 if __name__ == "__main__":
-    app.run()
+    app.run(host='0.0.0.0', port=flask_port)  # Sæt host til '0.0.0.0' for at tillade eksterne forbindelser til containeren
