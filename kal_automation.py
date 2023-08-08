@@ -1,0 +1,69 @@
+import subprocess
+import re
+
+def run_command(command):
+    result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, text=True)
+    return result.stdout
+
+def extract_channel_with_max_power(output):
+    pattern = r"chan: (\d+) \((\d+.\d+)MHz - [\d.]+kHz\)	power: ([\d.]+)"
+    matches = re.findall(pattern, output)
+    if not matches:
+        raise ValueError("Ingen kanaler fundet i output.")
+    
+    max_power_channel = max(matches, key=lambda x: float(x[2]))
+    return max_power_channel[0]
+
+def extract_absolute_error(output):
+    pattern = r"average absolute error: ([\d.]+) ppm"
+    match = re.search(pattern, output)
+    if not match:
+        raise ValueError("Kan ikke finde 'average absolute error' i output.")
+    
+    return match.group(1)
+
+def main():
+    gain = input("Indtast gain (-g værdi): ")
+    first_command = f"./kal -s GSM900 -e 0 -g {gain}"
+    output1 = run_command(first_command)
+
+    try:
+        channel = extract_channel_with_max_power(output1)
+    except ValueError as e:
+        print(f"Fejl: {e}")
+        return
+
+    second_command = f"./kal -c {channel} -e 0 -g {gain}"
+    output2 = run_command(second_command)
+
+    try:
+        error = extract_absolute_error(output2)
+    except ValueError as e:
+        print(f"Fejl: {e}")
+        return
+
+    # Kører test igen med den fundne error som -e værdi
+    third_command = f"./kal -c {channel} -e {error} -g {gain}"
+    output3 = run_command(third_command)
+
+    try:
+        new_error = extract_absolute_error(output3)
+    except ValueError as e:
+        print(f"Fejl: {e}")
+        return
+
+    if abs(float(new_error)) <= 1.0:  # Antager her, at en error indenfor 1.0 ppm er tilnærmelsesvis 0.
+        result_msg = "Success! Den nye error efter kalibrering er tilnærmelsesvis 0."
+    else:
+        result_msg = f"Fejl! Den nye error efter kalibrering er {new_error} ppm, hvilket ikke er tæt på 0."
+
+    print(result_msg)
+
+    with open("kalrun.log", "a") as log_file:
+        log_file.write(output1)
+        log_file.write(output2)
+        log_file.write(output3)
+        log_file.write(result_msg + "\n")
+
+if __name__ == "__main__":
+    main()
