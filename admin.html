@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h3>Admin Dashboard</h3>
+        <form action="/admin" method="post">
+            <!-- You can iterate over the config data to create input fields -->
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+        </form>
+
+        <div class="mt-4">
+            <h4>Logs</h4>
+            <ul>
+                <li><a href="/view_log/error.log">View error.log</a> | <a href="/clear_log/error.log">Clear error.log</a></li>
+                <li><a href="/view_log/kalrun.log">View kalrun.log</a> | <a href="/clear_log/kalrun.log">Clear kalrun.log</a></li>
+            </ul>
+        </div>
+        
+        <div class="mt-4">
+            <a href="/restart_system" class="btn btn-danger">Restart System</a>
+        </div>
+    </div>
+</body>
+</html>
