@@ -1,6 +1,16 @@
 import subprocess
 import re
 
+def update_config_file(new_ppm_error):
+    with open("config.txt", "r") as file:
+        content = file.read()
+
+    # Finder og erstatter ppm_error linjen med den nye værdi
+    content = re.sub(r"(ppm_error\s*=\s*)\d+", rf"\1{new_ppm_error}", content)
+
+    with open("config.txt", "w") as file:
+        file.write(content)
+
 def run_command(command):
     result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, text=True)
     return result.stdout
@@ -53,7 +63,8 @@ def main():
         return
 
     if abs(float(new_error)) <= 1.0:  # Antager her, at en error indenfor 1.0 ppm er tilnærmelsesvis 0.
-        result_msg = "Success! Den nye error efter kalibrering er tilnærmelsesvis 0."
+        result_msg = "Success! Den nye error efter kalibrering er tilnærmelsesvis 0. Derfor er config.txt også samtidig blevet opdateret."
+        update_config_file(error)
     else:
         result_msg = f"Fejl! Den nye error efter kalibrering er {new_error} ppm, hvilket ikke er tæt på 0."
 
