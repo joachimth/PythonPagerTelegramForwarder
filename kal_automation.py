@@ -1,5 +1,8 @@
 import subprocess
 import re
+import configparser
+import sys
+import os
 
 def get_gain_from_config():
     with open("config.txt", "r") as file:
@@ -48,7 +51,7 @@ def main():
         print(f"Fejl: {e}")
         return
     
-    first_command = f"./kal -s GSM900 -e 0 -g {gain}"
+    first_command = f"kal -s GSM900 -e 0 -g {gain}"
     output1 = run_command(first_command)
 
     try:
@@ -57,7 +60,7 @@ def main():
         print(f"Fejl: {e}")
         return
 
-    second_command = f"./kal -c {channel} -e 0 -g {gain}"
+    second_command = f"kal -c {channel} -e 0 -g {gain}"
     output2 = run_command(second_command)
 
     try:
@@ -67,7 +70,7 @@ def main():
         return
 
     # Kører test igen med den fundne error som -e værdi
-    third_command = f"./kal -c {channel} -e {error} -g {gain}"
+    third_command = f"kal -c {channel} -e {error} -g {gain}"
     output3 = run_command(third_command)
 
     try:
