@@ -1,3 +1,6 @@
+[Flask]
+port = 5000
+
 [Frequencies]
 freq = 171.300M
 prot = POCSAG512 POCSAG1200 POCSAG2400
