@@ -96,6 +96,12 @@ RUN pip install -r requirements.txt
 # Copy source code
 COPY app.py /app/app.py
 COPY config.txt /app/config.txt
+COPY flaskapp.py /app/flaskapp.py
+COPY kal_automation.py /app/kal_automation.py
+COPY admin.html /app/admin.html
+COPY login.html /app/login.html
+COPY log.html /app/log.html
+COPY init.py /app/init.py
 
 # Command to run the application
 CMD [ "python", "-u", "init.py" ]
