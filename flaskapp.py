@@ -27,6 +27,10 @@ def user_loader(email):
     user.id = email
     return user
 
+@app.route('/')
+def home():
+    return "Welcome to the Flask app!"
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -74,4 +78,4 @@ def restart_system():
     return "System Restarting..."
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=flask_port)  # Sæt host til '0.0.0.0' for at tillade eksterne forbindelser til containeren
+    app.run(host='0.0.0.0', port=flask_port, debug=True)  # Sæt host til '0.0.0.0' for at tillade eksterne forbindelser til containeren
