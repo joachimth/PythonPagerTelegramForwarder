@@ -1,4 +1,5 @@
 pytgbot
 Flask==2.0.1  # Tjek den seneste version
+flask-login
 Flask-Bootstrap==3.3.7.1  # Tjek den seneste version
 configparser==5.0.2  # Tjek den seneste version
