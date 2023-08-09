@@ -1,0 +1,32 @@
+name: Docker Build and Push
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build_and_push:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out the repository
+      uses: actions/checkout@v2
+
+    - name: Build the Docker image
+      run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/pythonpagertelegramforwarder .
+
+    - name: Log in to Docker Hub
+      run: docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
+
+    - name: Push the Docker image
+      run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/pythonpagertelegramforwarder
+
+    - name: Update README.md with image size
+      run: |
+        IMAGE_SIZE=$(docker images ${{ secrets.DOCKERHUB_USERNAME }}/pythonpagertelegramforwarder --format "{{.Size}}")
+        sed -i "s/Current Image Size: [0-9]*B/Current Image Size: $IMAGE_SIZE/g" README.md
+        git config user.name "Joachim Thirsbro"
+        git config user.email "joachimth@gmail.com"
+        git add README.md
+        git commit -m "Update image size in README.md"
+        git push
