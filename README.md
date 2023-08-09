@@ -3,7 +3,7 @@ CI Travis:
 [![Build Status](https://app.travis-ci.com/joachimth/PythonPagerTelegramForwarder.svg?branch=main)](https://app.travis-ci.com/joachimth/PythonPagerTelegramForwarder)
 
 _Repo metadata_
-[![Docker Image Size](https://img.shields.io/docker/image-size/joachimth/pythonpagertelegramforwarder:latest?logo=docker&style=for-the-badge)](https://hub.docker.com/repository/docker/joachimth/pythonpagertelegramforwarder/tags)
+[![Docker Image Size](https://img.shields.io/docker/image-size/joachimth/pythonpagertelegramforwarder/latest?logo=docker&style=for-the-badge)](https://hub.docker.com/repository/docker/joachimth/pythonpagertelegramforwarder/tags)
 
 
 [![OS - Linux](https://img.shields.io/badge/OS-Linux-blue?logo=linux&logoColor=white)](https://www.linux.org/ "Go to Linux homepage")
