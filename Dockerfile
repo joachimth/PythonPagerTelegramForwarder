@@ -28,6 +28,7 @@ RUN apt-get update && apt-get install -y \
     htop \
     coreutils \
     unzip \
+    python-is-python3 \
     && rm -rf /var/lib/apt/lists/*
 
 # Clone and build rtl-sdr
