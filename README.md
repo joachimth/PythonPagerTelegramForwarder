@@ -2,6 +2,8 @@
 
 [![Build Status](https://app.travis-ci.com/joachimth/PythonPagerTelegramForwarder.svg?branch=main)](https://app.travis-ci.com/joachimth/PythonPagerTelegramForwarder)
 
+Current Image Size: 1234B
+
 joachimth/PythonPagerTelegramForwarder
 
 pythonpagertelegramforwarder
