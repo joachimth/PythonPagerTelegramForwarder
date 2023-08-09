@@ -9,18 +9,12 @@ before_install:
 
 script:
   - docker images $YOUR_DOCKERHUB_USERNAME/pythonpagertelegramforwarder
-  - IMAGE_SIZE=$(docker images $YOUR_DOCKERHUB_USERNAME/pythonpagertelegramforwarder --format "{{.Size}}")
-  - sed -i "s/Current Image Size: [0-9]*B/Current Image Size: $IMAGE_SIZE/g" README.md
-  - git config --global user.name "Joachim Thirsbro"
-  - git config --global user.email "joachimth@gmail.com"
-  - git commit -am "Update image size in README.md"
-  - git push https://${GH_TOKEN}@github.com/joachimth/pythonpagertelegramforwarder.git main
 
 before_deploy:
   - docker login -u $YOUR_DOCKERHUB_USERNAME -p $YOUR_DOCKERHUB_PASSWORD
 
 deploy:
   provider: script
-  script: docker push $YOUR_DOCKERHUB_USERNAME/pythonpagertelegramforwarder
+  script: docker push $YOUR_DOCKERHUB_USERNAME/pythonpagertelegramforwarder:latest
   on:
     branch: main
