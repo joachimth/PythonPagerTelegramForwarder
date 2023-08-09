@@ -1,29 +1,9 @@
-# Dockerfile
-#tel_ID = "your-telegram-api-id" # Dit telegram bot API ID
-#rec_ID = "your-telegram-recipient-id" # Telegram modtager ID
-
-# Base image
-FROM python:3.8-slim-buster
+# === Build Stage 1: Setting up RTL-SDR and necessary tools ===
+FROM python:3.8-slim-buster as builder
 
 # Set working directory
 WORKDIR /app
 
-VOLUME /app/logs
-
-# Fortæl Docker at appen lytter på port 5000
-EXPOSE 5000
-
-# Set environment variables
-ENV TELEGRAM_API=min_default_telegram_api
-ENV TELEGRAM_REC=min_default_telegram_rec
-
-#libtool autoconf automake
-#libfftw3-dev screen
-#fakeroot debhelper librtlsdr-dev 
-#pkg-config libncurses5-dev libbladerf-dev
-#libhackrf-dev liblimesuite-dev
-
-#    libusb-1.0-0-dev \
 # Install necessary packages
 RUN apt-get update && apt-get install -y \
     cmake \
@@ -89,11 +69,30 @@ RUN git clone https://github.com/steve-m/kalibrate-rtl.git && \
     make && \
     make install
 
+# === Build Stage 2: Final Stage with application code and Python dependencies ===
+FROM python:3.8-slim-buster
+
+# Set working directory
+WORKDIR /app
+
+# Set environment variables
+ENV TELEGRAM_API=min_default_telegram_api
+ENV TELEGRAM_REC=min_default_telegram_rec
+
+VOLUME /app/logs
+
+EXPOSE 5000
+
 # Copy requirements.txt and install dependencies
 COPY requirements.txt /app/requirements.txt
 RUN pip install -r requirements.txt
 
-# Copy source code
+# Copy built binaries from builder stage
+COPY --from=builder /usr/local/bin/ /usr/local/bin/
+COPY --from=builder /usr/local/lib/ /usr/local/lib/
+COPY --from=builder /usr/local/include/ /usr/local/include/
+
+# Copy application code
 COPY app.py /app/app.py
 COPY config.txt /app/config.txt
 COPY flaskapp.py /app/flaskapp.py
@@ -105,4 +104,3 @@ COPY init.py /app/init.py
 
 # Command to run the application
 CMD [ "python", "-u", "init.py" ]
-#CMD [ "sleep", "infinity" ]
