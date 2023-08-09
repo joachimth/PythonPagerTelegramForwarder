@@ -25,6 +25,15 @@ def update_config_file(new_ppm_error):
 
 def run_command(command):
     result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, text=True)
+    
+    with open("kalrun.log", "a") as log_file:
+        log_file.write(f"Executing: {command}\n")
+        log_file.write("Output:\n")
+        log_file.write(result.stdout)
+        log_file.write("\nError:\n")
+        log_file.write(result.stderr)
+        log_file.write("\n-------------------------------------\n")
+
     return result.stdout
 
 def extract_channel_with_max_power(output):
