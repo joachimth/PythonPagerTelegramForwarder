@@ -87,6 +87,11 @@ RUN apt-get update && apt-get install -y \
     unzip \
     && rm -rf /var/lib/apt/lists/*
 
+# Copy built binaries from builder stage
+COPY --from=builder /usr/local/bin/ /usr/local/bin/
+COPY --from=builder /usr/local/lib/ /usr/local/lib/
+COPY --from=builder /usr/local/include/ /usr/local/include/
+
 RUN wget -O /etc/udev/rules.d/rtl-sdr.rules "https://raw.githubusercontent.com/osmocom/rtl-sdr/master/rtl-sdr.rules"
 RUN echo "blacklist dvb_usb_rtl28xxu" >> /etc/modprobe.d/blacklist.conf
 RUN echo "blacklist dvb_usb_rtl8xxxu" >> /etc/modprobe.d/blacklist.conf
@@ -95,11 +100,6 @@ RUN echo "blacklist 8192cu" >> /etc/modprobe.d/blacklist.conf
 # Copy requirements.txt and install dependencies
 COPY requirements.txt /app/requirements.txt
 RUN pip install -r requirements.txt
-
-# Copy built binaries from builder stage
-COPY --from=builder /usr/local/bin/ /usr/local/bin/
-COPY --from=builder /usr/local/lib/ /usr/local/lib/
-COPY --from=builder /usr/local/include/ /usr/local/include/
 
 # Copy application code
 COPY app.py /app/app.py
