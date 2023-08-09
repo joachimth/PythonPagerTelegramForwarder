@@ -64,6 +64,11 @@ RUN git clone https://github.com/steve-m/kalibrate-rtl.git && \
     make && \
     make install
 
+COPY rtl-sdr.rules /etc/udev/rules.d/rtl-sdr.rules
+RUN echo "blacklist dvb_usb_rtl28xxu" >> /etc/modprobe.d/blacklist.conf
+RUN echo "blacklist dvb_usb_rtl8xxxu" >> /etc/modprobe.d/blacklist.conf
+RUN echo "blacklist 8192cu" >> /etc/modprobe.d/blacklist.conf
+
 # === Build Stage 2: Final Stage with application code and Python dependencies ===
 FROM python:3.8-slim-buster
 
@@ -82,11 +87,6 @@ EXPOSE 5000
 COPY --from=builder /usr/local/bin/ /usr/local/bin/
 COPY --from=builder /usr/local/lib/ /usr/local/lib/
 COPY --from=builder /usr/local/include/ /usr/local/include/
-
-COPY rtl-sdr.rules /etc/udev/rules.d/rtl-sdr.rules
-RUN echo "blacklist dvb_usb_rtl28xxu" >> /etc/modprobe.d/blacklist.conf
-RUN echo "blacklist dvb_usb_rtl8xxxu" >> /etc/modprobe.d/blacklist.conf
-RUN echo "blacklist 8192cu" >> /etc/modprobe.d/blacklist.conf
 
 # Copy requirements.txt and install dependencies
 COPY requirements.txt /app/requirements.txt
