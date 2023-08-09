@@ -40,11 +40,6 @@ RUN git clone git://git.osmocom.org/rtl-sdr.git && \
     make install && \
     ldconfig
 
-RUN wget -O /etc/udev/rules.d/rtl-sdr.rules "https://raw.githubusercontent.com/osmocom/rtl-sdr/master/rtl-sdr.rules"
-RUN echo "blacklist dvb_usb_rtl28xxu" >> /etc/modprobe.d/blacklist.conf
-RUN echo "blacklist dvb_usb_rtl8xxxu" >> /etc/modprobe.d/blacklist.conf
-RUN echo "blacklist 8192cu" >> /etc/modprobe.d/blacklist.conf
-
 # Install additional packages for multimon-ng
 RUN apt-get update && apt-get install -y \
     qtbase5-dev \
@@ -82,6 +77,11 @@ ENV TELEGRAM_REC=min_default_telegram_rec
 VOLUME /app/logs
 
 EXPOSE 5000
+
+RUN wget -O /etc/udev/rules.d/rtl-sdr.rules "https://raw.githubusercontent.com/osmocom/rtl-sdr/master/rtl-sdr.rules"
+RUN echo "blacklist dvb_usb_rtl28xxu" >> /etc/modprobe.d/blacklist.conf
+RUN echo "blacklist dvb_usb_rtl8xxxu" >> /etc/modprobe.d/blacklist.conf
+RUN echo "blacklist 8192cu" >> /etc/modprobe.d/blacklist.conf
 
 # Copy requirements.txt and install dependencies
 COPY requirements.txt /app/requirements.txt
