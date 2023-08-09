@@ -3,7 +3,38 @@ CI Travis:
 [![Build Status](https://app.travis-ci.com/joachimth/PythonPagerTelegramForwarder.svg?branch=main)](https://app.travis-ci.com/joachimth/PythonPagerTelegramForwarder)
 
 Github Actions:
-![Build Status](https://github.com/joachimth/PythonPagerTelegramForwarder/actions/workflows/docker_build_push.yml.yml/badge.svg)
+
+
+_Repo metadata_
+
+[![Docker Build and Push](https://github.com/joachimth/pythonpagertelegramforwarder/workflows/Docker%20Build%20and%20Push/badge.svg)](https://github.com/joachimth/pythonpagertelegramforwarder/actions?query=workflow:"Docker+Build+and+Push")
+[![GitHub tag](https://img.shields.io/github/tag/joachimth/pythonpagertelegramforwarder?include_prereleases=&sort=semver&color=blue)](https://github.com/joachimth/pythonpagertelegramforwarder/releases/)
+[![License](https://img.shields.io/badge/License-MIT-blue)](#license)
+
+
+_Call-to-Action buttons_
+
+<div align="center">
+
+
+
+
+
+</div>
+
+## Documentation
+
+<div align="center">
+
+[![view - Documentation](https://img.shields.io/badge/view-Documentation-blue?style=for-the-badge)](/docs/ "Go to project documentation")
+
+</div>
+
+
+## License
+
+Released under [MIT](/LICENSE) by [@joachimth](https://github.com/joachimth).
+
 
 Current Image Size: 1234B
 
