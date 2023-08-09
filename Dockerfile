@@ -75,6 +75,19 @@ FROM python:3.8-slim-buster
 # Set working directory
 WORKDIR /app
 
+# Install necessary packages
+RUN apt-get update && apt-get install -y \
+    librtlsdr-dev \
+    libfftw3-dev \
+    libtool \
+    libncurses5-dev \
+    libhackrf-dev \
+    usbutils \
+    wget \
+    htop \
+    coreutils \
+    && rm -rf /var/lib/apt/lists/*
+
 # Set environment variables
 ENV TELEGRAM_API=min_default_telegram_api
 ENV TELEGRAM_REC=min_default_telegram_rec
