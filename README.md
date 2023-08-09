@@ -2,14 +2,13 @@
 CI Travis:
 [![Build Status](https://app.travis-ci.com/joachimth/PythonPagerTelegramForwarder.svg?branch=main)](https://app.travis-ci.com/joachimth/PythonPagerTelegramForwarder)
 
-Github Actions:
-
-
 _Repo metadata_
 
 [![Docker Build and Push](https://github.com/joachimth/pythonpagertelegramforwarder/workflows/Docker%20Build%20and%20Push/badge.svg)](https://github.com/joachimth/pythonpagertelegramforwarder/actions?query=workflow:"Docker+Build+and+Push")
 [![GitHub tag](https://img.shields.io/github/tag/joachimth/pythonpagertelegramforwarder?include_prereleases=&sort=semver&color=blue)](https://github.com/joachimth/pythonpagertelegramforwarder/releases/)
 [![License](https://img.shields.io/badge/License-MIT-blue)](#license)
+[![issues - pythonpagertelegramforwarder](https://img.shields.io/github/issues/joachimth/pythonpagertelegramforwarder)](https://github.com/joachimth/pythonpagertelegramforwarder/issues)
+
 
 
 _Call-to-Action buttons_
