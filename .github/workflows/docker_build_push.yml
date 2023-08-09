@@ -19,14 +19,4 @@ jobs:
       run: docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
 
     - name: Push the Docker image
-      run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/pythonpagertelegramforwarder
-
-    - name: Update README.md with image size
-      run: |
-        IMAGE_SIZE=$(docker images ${{ secrets.DOCKERHUB_USERNAME }}/pythonpagertelegramforwarder --format "{{.Size}}")
-        sed -i "s/Current Image Size: [0-9]*B/Current Image Size: $IMAGE_SIZE/g" README.md
-        git config user.name "Joachim Thirsbro"
-        git config user.email "joachimth@gmail.com"
-        git add README.md
-        git commit -m "Update image size in README.md"
-        git push https://${{ secrets.GH_PAT }}@github.com/joachimth/pythonpagertelegramforwarder.git
+      run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/pythonpagertelegramforwarder:latestgh
