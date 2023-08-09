@@ -82,6 +82,9 @@ RUN apt-get update && apt-get install -y \
     libtool \
     libncurses5-dev \
     libhackrf-dev \
+    qtbase5-dev \
+    libpulse-dev \
+    libx11-dev \
     usbutils \
     wget \
     htop \
