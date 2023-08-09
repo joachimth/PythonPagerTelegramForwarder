@@ -103,4 +103,6 @@ COPY templates/log.html /app/templates/log.html
 COPY init.py /app/init.py
 
 # Command to run the application
-CMD [ "python", "init.py" ]
+#CMD [ "python", "init.py" ]
+CMD [ "sleep", "infinity" ]
+
