@@ -29,4 +29,4 @@ jobs:
         git config user.email "joachimth@gmail.com"
         git add README.md
         git commit -m "Update image size in README.md"
-        git push https://${{ secrets.GH_PAT }}@github.com/${{ secrets.DOCKERHUB_USERNAME }}/pythonpagertelegramforwarder.git
+        git push https://${{ secrets.GH_PAT }}@github.com/joachimth/pythonpagertelegramforwarder.git
