@@ -4,6 +4,12 @@ CI Travis:
 
 _Repo metadata_
 
+[![OS - Linux](https://img.shields.io/badge/OS-Linux-blue?logo=linux&logoColor=white)](https://www.linux.org/ "Go to Linux homepage")
+
+[![Made with GH Actions](https://img.shields.io/badge/CI-GitHub_Actions-blue?logo=github-actions&logoColor=white)](https://github.com/features/actions "Go to GitHub Actions homepage")
+[![Made with Docker](https://img.shields.io/badge/Made_with-Docker-blue?logo=docker&logoColor=white)](https://www.docker.com/ "Go to Docker homepage")
+[![Made with Python](https://img.shields.io/badge/Python->=3.6-blue?logo=python&logoColor=white)](https://python.org "Go to Python homepage")
+
 [![Docker Build and Push](https://github.com/joachimth/pythonpagertelegramforwarder/workflows/Docker%20Build%20and%20Push/badge.svg)](https://github.com/joachimth/pythonpagertelegramforwarder/actions?query=workflow:"Docker+Build+and+Push")
 [![GitHub tag](https://img.shields.io/github/tag/joachimth/pythonpagertelegramforwarder?include_prereleases=&sort=semver&color=blue)](https://github.com/joachimth/pythonpagertelegramforwarder/releases/)
 [![License](https://img.shields.io/badge/License-MIT-blue)](#license)
