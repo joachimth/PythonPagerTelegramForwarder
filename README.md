@@ -1,6 +1,9 @@
 # Python Pager Telegram Forwarder
-
+CI Travis:
 [![Build Status](https://app.travis-ci.com/joachimth/PythonPagerTelegramForwarder.svg?branch=main)](https://app.travis-ci.com/joachimth/PythonPagerTelegramForwarder)
+
+Github Actions:
+![Build Status](https://github.com/joachimth/PythonPagerTelegramForwarder/actions/workflows/docker_build_push.yml.yml/badge.svg)
 
 Current Image Size: 1234B
 
