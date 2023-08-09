@@ -78,6 +78,15 @@ VOLUME /app/logs
 
 EXPOSE 5000
 
+RUN apt-get update && apt-get install -y \
+    usbutils \
+    wget \
+    curl \
+    htop \
+    coreutils \
+    unzip \
+    && rm -rf /var/lib/apt/lists/*
+
 RUN wget -O /etc/udev/rules.d/rtl-sdr.rules "https://raw.githubusercontent.com/osmocom/rtl-sdr/master/rtl-sdr.rules"
 RUN echo "blacklist dvb_usb_rtl28xxu" >> /etc/modprobe.d/blacklist.conf
 RUN echo "blacklist dvb_usb_rtl8xxxu" >> /etc/modprobe.d/blacklist.conf
