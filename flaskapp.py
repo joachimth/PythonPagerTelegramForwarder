@@ -62,7 +62,7 @@ def admin():
         flash('Configuration saved successfully!')
     
     # Henter alle .log filer
-    log_files = glob.glob('**/*.log', recursive=True)
+    log_files = [log for log in glob.glob('**/*.log', recursive=True) if os.path.getsize(log) > 0]
     
     return render_template('admin.html', config=config, log_files=log_files)
 
