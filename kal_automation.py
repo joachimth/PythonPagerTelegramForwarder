@@ -54,12 +54,17 @@ def extract_absolute_error(output):
     return round(float(match.group(1)))
 
 def extract_average_hz(output):
-    pattern = r"average\s*\n\s*([-\d]+)Hz"
-    match = re.search(pattern, output)
-    if not match:
-        raise ValueError("Kan ikke finde 'average Hz' i output.")
-
-    return int(match.group(1))
+    lines = output.split('\n')
+    for i, line in enumerate(lines):
+        if "average" in line:
+            try:
+                # Forventer, at den næste linje indeholder Hz-værdien
+                hz_line = lines[i + 1].strip().split()
+                if "Hz" in hz_line[1]:  # Dette bør give os den korrekte værdi
+                    return int(hz_line[0])
+            except IndexError:
+                raise ValueError("Kan ikke finde 'average Hz' i output.")
+    raise ValueError("Kan ikke finde 'average Hz' i output.")
 
 def main():
     # Slet kalrun.log ved opstart, hvis den eksisterer
