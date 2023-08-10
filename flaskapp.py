@@ -47,19 +47,20 @@ def login():
 @app.route('/admin', methods=['GET', 'POST'])
 @login_required
 def admin():
+    # Load data from config.txt
+    local_config = configparser.ConfigParser()
+    local_config.read('config.txt')
+
     if request.method == 'POST':
         # Handle form submission to update config.txt here
-        for section in config.sections():
-            for key in config[section]:
-                config[section][key] = request.form[f'{section}_{key}']
+        for section in local_config.sections():
+            for key in local_config[section]:
+                local_config[section][key] = request.form[f'{section}_{key}']
         with open('config.txt', 'w') as config_file:
-            config.write(config_file)
+            local_config.write(config_file)
         flash('Configuration saved successfully!')
 
-    # Load data from config.txt
-    config = configparser.ConfigParser()
-    config.read('config.txt')
-    return render_template('admin.html', config=config)
+    return render_template('admin.html', config=local_config)
 
 @app.route('/view_log/<filename>')
 @login_required
