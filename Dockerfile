@@ -99,14 +99,19 @@ VOLUME /app/logs
 
 EXPOSE 5000
 
+ARG DOCKER_IMAGE_VERSION
+
 # Copy built binaries from builder stage
 COPY --from=builder /usr/local/bin/ /usr/local/bin/
 COPY --from=builder /usr/local/lib/ /usr/local/lib/
 COPY --from=builder /usr/local/include/ /usr/local/include/
 
+
 # Copy requirements.txt and install dependencies
 COPY requirements.txt /app/requirements.txt
-RUN pip install -r requirements.txt
+RUN pip install -r requirements.txt && \
+    set-cont-env APP_NAME "PythonPagerTelegramForwarder" && \
+    set-cont-env DOCKER_IMAGE_VERSION "$DOCKER_IMAGE_VERSION"
 
 # Copy application code
 COPY app.py /app/app.py
@@ -119,6 +124,13 @@ COPY templates/log.html /app/templates/log.html
 COPY init.py /app/init.py
 
 # Command to run the application
-#CMD [ "python", "init.py" ]
-CMD [ "sleep", "infinity" ]
+CMD [ "python", "init.py" ]
+#CMD [ "sleep", "infinity" ]
 
+# Metadata.
+LABEL \
+      org.label-schema.name="pptf" \
+      org.label-schema.description="Docker container for PythonPagerTelegramForwarder" \
+      org.label-schema.version="${DOCKER_IMAGE_VERSION:-}" \
+      org.label-schema.vcs-url="https://github.com/joachimth/PythonPagerTelegramForwarder" \
+      org.label-schema.schema-version="1.0"
