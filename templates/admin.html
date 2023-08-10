@@ -35,12 +35,24 @@
         </form>
 
         <div class="mt-4">
-            <h4>Logs</h4>
-            <ul>
-                <li><a href="/view_log/error.log">View error.log</a> | <a href="/clear_log/error.log">Clear error.log</a></li>
-                <li><a href="/view_log/kalrun.log">View kalrun.log</a> | <a href="/clear_log/kalrun.log">Clear kalrun.log</a></li>
-            </ul>
+    <h4>Logs</h4>
+    
+        <nav>
+            <div class="nav nav-tabs" id="log-nav-tab" role="tablist">
+                {% for log in log_files %}
+                    <a class="nav-item nav-link {% if loop.first %}active{% endif %}" id="nav-{{ log }}-tab" data-bs-toggle="tab" href="#nav-{{ log }}" role="tab" aria-controls="nav-{{ log }}" aria-selected="true">{{ log }}</a>
+                {% endfor %}
+            </div>
+        </nav>
+        <div class="tab-content mt-3" id="log-nav-tabContent">
+            {% for log in log_files %}
+                <div class="tab-pane fade {% if loop.first %}show active{% endif %}" id="nav-{{ log }}" role="tabpanel" aria-labelledby="nav-{{ log }}-tab">
+                    <!-- Indholdet af logfilen kan vises her, eller du kan tilføje links til visning/rydning -->
+                    <a href="/view_log/{{ log }}">View {{ log }}</a> | <a href="/clear_log/{{ log }}">Clear {{ log }}</a>
+                </div>
+            {% endfor %}
         </div>
+    </div>
         
         <div class="mt-4">
             <a href="/restart_system" class="btn btn-danger">Restart System</a>
