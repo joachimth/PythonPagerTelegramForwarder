@@ -49,7 +49,13 @@ def login():
 def admin():
     if request.method == 'POST':
         # Handle form submission to update config.txt here
-        pass
+        for section in config.sections():
+            for key in config[section]:
+                config[section][key] = request.form[f'{section}_{key}']
+        with open('config.txt', 'w') as config_file:
+            config.write(config_file)
+        flash('Configuration saved successfully!')
+
     # Load data from config.txt
     config = configparser.ConfigParser()
     config.read('config.txt')
