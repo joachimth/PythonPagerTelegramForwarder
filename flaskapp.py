@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user
 import configparser
 import os
+import glob
 
 config = configparser.ConfigParser()
 config.read('config.txt')
@@ -59,8 +60,11 @@ def admin():
         with open('config.txt', 'w') as config_file:
             local_config.write(config_file)
         flash('Configuration saved successfully!')
-
-    return render_template('admin.html', config=local_config)
+    
+    # Henter alle .log filer
+    log_files = glob.glob('**/*.log', recursive=True)
+    
+    return render_template('admin.html', config=config, log_files=log_files)
 
 @app.route('/view_log/<filename>')
 @login_required
