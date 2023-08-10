@@ -19,35 +19,29 @@ _Repo metadata_
 
 
 
-_Call-to-Action buttons_
 
-<div align="center">
+# {{ name }}
 
+{{ description }}
 
+**Version:** {{ version }}
 
+**Website:** [Link]({{ website }})
 
+**Maintainer:** {{ maintainer }}
 
-</div>
+## Instructions
 
-## Documentation
+{% for step in instructions.install %}
+- {{ step }}
+{% endfor %}
 
-<div align="center">
-
-[![view - Documentation](https://img.shields.io/badge/view-Documentation-blue?style=for-the-badge)](/docs/ "Go to project documentation")
-
-</div>
-
-
-## License
-
-Released under [MIT](/LICENSE) by [@joachimth](https://github.com/joachimth).
+...
 
 
-Current Image Size: 1234B
 
-joachimth/PythonPagerTelegramForwarder
+....................
 
-pythonpagertelegramforwarder
 
 ```Docker Pull
 docker pull joachimth/pythonpagertelegramforwarder:latest
