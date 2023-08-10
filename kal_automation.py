@@ -13,15 +13,37 @@ def get_gain_from_config():
             return line.split("=")[1].strip()
     raise ValueError("Gain værdi ikke fundet i config.txt.")
 
+def get_gsmband_from_config():
+    with open("config.txt", "r") as file:
+        content = file.readlines()
+    
+    for line in content:
+        if "gsmband" in line:
+            return line.split("=")[1].strip()
+    raise ValueError("GSM Bånd værdi ikke fundet i config.txt.")
+
 def update_config_file(new_ppm_error):
     with open("config.txt", "r") as file:
         content = file.read()
-
+    print("\n-------------------------------------\n")
+    print(f"Inden rettelser:\n{content}\n")
     # Finder og erstatter ppm_error linjen med den nye værdi
-    content = re.sub(r"(ppm_error\s*=\s*)\d+", rf"\1{new_ppm_error}", content)
+    newcontent = re.sub(r"ppm_error\s*=\s*\d+", f"ppm_error = {new_ppm_error}", content)
+    print("\n-------------------------------------\n")
+    print(f"Efter rettelser:\n{content}\n")
 
     with open("config.txt", "w") as file:
-        file.write(content)
+        file.write(newcontent)
+
+    with open("kalrun.log", "a") as log_file:
+        log_file.write(f"Updating config file:\n")
+        log_file.write("\n-------------------------------------\n")
+        log_file.write("Before changes:\n")
+        log_file.write(content)
+        log_file.write("\n-------------------------------------\n")
+        log_file.write("\nAfter Changes:\n")
+        log_file.write(newcontent)
+        log_file.write("\n-------------------------------------\n")
 
 def run_command(command):
     result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, text=True)
@@ -88,8 +110,14 @@ def main():
     except ValueError as e:
         print(f"Fejl: {e}")
         return
+
+    try:
+        gsmband = get_gsmband_from_config()
+    except ValueError as e:
+        print(f"Fejl: {e}")
+        return
     
-    first_command = f"kal -s GSM900 -e 0 -g {gain}"
+    first_command = f"kal -s {gsmband} -e 0 -g {gain}"
     output1 = run_command(first_command)
 
     try:
