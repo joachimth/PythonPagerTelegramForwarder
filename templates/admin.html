@@ -9,22 +9,30 @@
 <body>
     <div class="container mt-5">
         <h3>Admin Dashboard</h3>
-        <form action="/admin" method="post">
-            <!-- Iterate over the config data to create input fields -->
-            {% for section, values in config.items() %}
-                <fieldset class="mb-4">
-                    <legend>{{ section }}</legend>
-                    {% for key, value in values.items() %}
-                        <div class="mb-3">
-                            <label for="{{ section }}_{{ key }}" class="form-label">{{ key }}</label>
-                            <input type="text" class="form-control" id="{{ section }}_{{ key }}" name="{{ section }}_{{ key }}" value="{{ value }}">
-                        </div>
-                    {% endfor %}
-                </fieldset>
-            {% endfor %}
-            <button type="submit" class="btn btn-primary">Save Changes</button>
-        </form>
         
+        <nav>
+            <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                {% for section in config.keys() %}
+                    <a class="nav-item nav-link {% if loop.first %}active{% endif %}" id="nav-{{ section }}-tab" data-bs-toggle="tab" href="#nav-{{ section }}" role="tab" aria-controls="nav-{{ section }}" aria-selected="true">{{ section }}</a>
+                {% endfor %}
+            </div>
+        </nav>
+
+        <form action="/admin" method="post">
+            <div class="tab-content mt-3" id="nav-tabContent">
+                {% for section, values in config.items() %}
+                    <div class="tab-pane fade {% if loop.first %}show active{% endif %}" id="nav-{{ section }}" role="tabpanel" aria-labelledby="nav-{{ section }}-tab">
+                        {% for key, value in values.items() %}
+                            <div class="mb-3">
+                                <label for="{{ section }}_{{ key }}" class="form-label">{{ key }}</label>
+                                <input type="text" class="form-control" id="{{ section }}_{{ key }}" name="{{ section }}_{{ key }}" value="{{ value }}">
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+                <button type="submit" class="btn btn-primary mt-3">Save Changes</button>
+            </div>
+        </form>
 
         <div class="mt-4">
             <h4>Logs</h4>
@@ -38,5 +46,6 @@
             <a href="/restart_system" class="btn btn-danger">Restart System</a>
         </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
