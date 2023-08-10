@@ -1,0 +1,54 @@
+#
+# Definitions for pythonpagertelegramforwarder docker container.
+#
+# This file is used as a data source to generate README.md and unRAID template files
+# from Jinja2 templates.
+#
+
+name: pythonpagertelegramforwarder
+version: latest
+description: Docker container for Python-based pager to Telegram forwarder using RTL-SDR
+website: https://github.com/joachimth/PythonPagerTelegramForwarder
+logo: URL_to_your_logo_image  # Update med URL til din logo, hvis du har en
+maintainer: Joachimth
+categories:
+  - Media
+
+### Repository Information
+repository:
+  - joachimth/pythonpagertelegramforwarder:latest
+
+### Container Information
+Base: python:3.8-slim-buster
+
+### Volumes
+volumes:
+  - name: /app/logs
+    description: Log directory
+
+### Ports
+ports:
+  - host: 5000
+    container: 5000
+    description: Flask app port
+    default: 5000
+    protocol: tcp
+
+### Environment Variables
+environment:
+  - variable: TELEGRAM_API
+    description: The API for Telegram
+    default: min_default_telegram_api  # Update if necessary
+  - variable: TELEGRAM_REC
+    description: The Telegram REC
+    default: min_default_telegram_rec  # Update if necessary
+
+### Instructions
+instructions:
+  install:
+    - Pull the Docker image: `docker pull joachimth/pythonpagertelegramforwarder:latest`
+  upgrade:
+    - Stop the container
+    - Remove the container
+    - Pull the latest image: `docker pull joachimth/pythonpagertelegramforwarder:latest`
+    - Create and start a new container
