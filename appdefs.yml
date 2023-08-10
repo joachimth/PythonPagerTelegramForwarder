@@ -46,9 +46,9 @@ environment:
 ### Instructions
 instructions:
   install:
-    - Pull the Docker image: `docker pull joachimth/pythonpagertelegramforwarder:latest`
+    - Pull the Docker image: 'docker pull joachimth/pythonpagertelegramforwarder:latest'
   upgrade:
     - Stop the container
     - Remove the container
-    - Pull the latest image: `docker pull joachimth/pythonpagertelegramforwarder:latest`
+    - Pull the latest image: 'docker pull joachimth/pythonpagertelegramforwarder:latest'
     - Create and start a new container
