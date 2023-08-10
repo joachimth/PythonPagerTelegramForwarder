@@ -117,7 +117,7 @@ def main():
         print(f"Fejl: {e}")
         return
 
-    if 0 = avg_hz <= 500:
+    if avg_hz <= 500:
         result_msg = f"Success! Den gennemsnitlige fejl efter kalibrering er {avg_hz} Hz, hvilket er indenfor det acceptable interval. Den endelige fejlværdi bliver derfor {error} ppm."
         update_config_file(error)
     else:
