@@ -53,6 +53,14 @@ def extract_absolute_error(output):
     
     return round(float(match.group(1)))
 
+def extract_average_hz(output):
+    pattern = r"average\s+([-\d]+)Hz"
+    match = re.search(pattern, output)
+    if not match:
+        raise ValueError("Kan ikke finde 'average Hz' i output.")
+
+    return int(match.group(1))
+
 def main():
     # Slet kalrun.log ved opstart, hvis den eksisterer
     if os.path.exists("kalrun.log"):
@@ -86,17 +94,19 @@ def main():
     third_command = f"kal -c {channel} -e {error} -g {gain}"
     output3 = run_command(third_command)
 
+    output3 = run_command(third_command)
+
     try:
-        new_error = extract_absolute_error(output3)
+        avg_hz = extract_average_hz(output3)
     except ValueError as e:
         print(f"Fejl: {e}")
         return
 
-    if abs(new_error) <= 1:  # Antager her, at en error indenfor 1.0 ppm er tilnærmelsesvis 0.
-        result_msg = "Success! Den nye error efter kalibrering er tilnærmelsesvis 0. Den afrundede fejl er {error} ppm. Derfor er config.txt også samtidig blevet opdateret."
+    if -500 <= avg_hz <= 500:
+        result_msg = f"Success! Den gennemsnitlige fejl efter kalibrering er {avg_hz} Hz, hvilket er indenfor det acceptable interval."
         update_config_file(error)
     else:
-        result_msg = f"Fejl! Den nye error efter kalibrering er {new_error} ppm, hvilket ikke er tæt på 0."
+        result_msg = f"Fejl! Den gennemsnitlige fejl efter kalibrering er {avg_hz} Hz, hvilket ikke er indenfor det acceptable interval."
 
     print(result_msg)
 
