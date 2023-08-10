@@ -1,7 +1,6 @@
 [Flask]
 port = 5000
 
-
 [Frequencies]
 freq = 171.300M
 prot = POCSAG512 POCSAG1200 POCSAG2400
@@ -12,11 +11,14 @@ device_index = 0
 sample_rate = 22050
 enable_option = -E dc
 gain = 42
-ppm_error = 33
+ppm_error = 32
 squelch_level = 0
 
 [multimon-ng]
 input_file = /dev/stdin
+
+[kal]
+gsmband = GSM900
 
 [Encoding]
 encoding_format = utf-8
