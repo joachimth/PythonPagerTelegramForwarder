@@ -9,7 +9,7 @@ name: pythonpagertelegramforwarder
 version: latest
 description: Docker container for Python-based pager to Telegram forwarder using RTL-SDR
 website: https://github.com/joachimth/PythonPagerTelegramForwarder
-logo: URL_to_your_logo_image  # Update med URL til din logo, hvis du har en
+logo: https://github.com/joachimth/PythonPagerTelegramForwarder/raw/main/static/logo.png
 maintainer: Joachimth
 categories:
   - Media
