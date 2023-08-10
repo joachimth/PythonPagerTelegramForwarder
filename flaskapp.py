@@ -29,7 +29,7 @@ def user_loader(email):
 
 @app.route('/')
 def home():
-    return "Welcome to the Flask app!"
+    return redirect(url_for('login'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -58,9 +58,14 @@ def admin():
 @app.route('/view_log/<filename>')
 @login_required
 def view_log(filename):
-    with open(filename, 'r') as f:
-        content = f.read()
-    return render_template('log.html', content=content)
+        # Slet kalrun.log ved opstart, hvis den eksisterer
+    if os.path.exists(filename):
+        with open(filename, 'r') as f:
+            content = f.read()
+        return render_template('log.html', content=content)
+    else:
+        print(f"Filen: {filename} eksisterer ikke")
+        return "Filen eksisterer ikke.."
 
 @app.route('/clear_log/<filename>')
 @login_required
