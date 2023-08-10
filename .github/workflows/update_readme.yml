@@ -26,7 +26,7 @@ jobs:
       run: python generate_readme.py
       
     - name: Commit and push changes
-      uses: devops-infra/action-commit-push@main
+      uses: devops-infra/action-commit-push@master
       with:
         github_token: ${{ secrets.GH_PAT }}
         commit_message: "Updated README.md [skip ci]"
