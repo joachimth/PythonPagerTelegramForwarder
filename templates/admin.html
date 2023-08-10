@@ -54,11 +54,9 @@
             </nav>
             <div class="tab-content mt-3" id="log-nav-tabContent">
                 {% for log in log_files %}
-                <div class="tab-pane fade {% if loop.first %}show active{% endif %}" id="nav-{{ log }}" role="tabpanel"
-                    aria-labelledby="nav-{{ log }}-tab">
+                <div class="tab-pane fade {% if loop.first %}show active{% endif %}" id="nav-{{ log }}" role="tabpanel" aria-labelledby="nav-{{ log }}-tab">
                     <!-- Indholdet af logfilen kan vises her, eller du kan tilføje links til visning/rydning -->
-                    <a href="/view_log/{{ log }}">View {{ log }}</a> | <a href="/clear_log/{{ log }}">Clear {{ log
-                        }}</a>
+                    <a href="/view_log/{{ log }}">View {{ log }}</a> | <a href="/clear_log/{{ log }}">Clear {{ log }}</a>
                 </div>
                 {% endfor %}
             </div>
