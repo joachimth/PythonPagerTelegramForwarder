@@ -51,9 +51,13 @@ def extract_absolute_error(output):
     if not match:
         raise ValueError("Kan ikke finde 'average absolute error' i output.")
     
-    return match.group(1)
+    return round(float(match.group(1)))
 
 def main():
+    # Slet kalrun.log ved opstart, hvis den eksisterer
+    if os.path.exists("kalrun.log"):
+        os.remove("kalrun.log")
+    
     try:
         gain = get_gain_from_config()
     except ValueError as e:
@@ -88,8 +92,8 @@ def main():
         print(f"Fejl: {e}")
         return
 
-    if abs(float(new_error)) <= 1.0:  # Antager her, at en error indenfor 1.0 ppm er tilnærmelsesvis 0.
-        result_msg = "Success! Den nye error efter kalibrering er tilnærmelsesvis 0. Derfor er config.txt også samtidig blevet opdateret."
+    if abs(new_error) <= 1:  # Antager her, at en error indenfor 1.0 ppm er tilnærmelsesvis 0.
+        result_msg = "Success! Den nye error efter kalibrering er tilnærmelsesvis 0. Den afrundede fejl er {error} ppm. Derfor er config.txt også samtidig blevet opdateret."
         update_config_file(error)
     else:
         result_msg = f"Fejl! Den nye error efter kalibrering er {new_error} ppm, hvilket ikke er tæt på 0."
