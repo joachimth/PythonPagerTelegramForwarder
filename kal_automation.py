@@ -60,8 +60,14 @@ def extract_average_hz(output):
             try:
                 # Forventer, at den næste linje indeholder Hz-værdien
                 hz_line = lines[i + 1].strip().split()
-                if "Hz" in hz_line[1]:  # Dette bør give os den korrekte værdi
-                    return int(hz_line[0])
+                value_str = hz_line[0].replace("kHz", "").replace("Hz", "")
+                
+                if "kHz" in hz_line[1]:
+                    value = int(float(value_str) * 1000)  # konverter kilohertz til hertz
+                else:
+                    value = int(value_str)
+                
+                return value
             except IndexError:
                 raise ValueError("Kan ikke finde 'average Hz' i output.")
     raise ValueError("Kan ikke finde 'average Hz' i output.")
