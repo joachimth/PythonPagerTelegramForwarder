@@ -109,9 +109,7 @@ COPY --from=builder /usr/local/include/ /usr/local/include/
 
 # Copy requirements.txt and install dependencies
 COPY requirements.txt /app/requirements.txt
-RUN pip install -r requirements.txt && \
-    set-cont-env APP_NAME "PythonPagerTelegramForwarder" && \
-    set-cont-env DOCKER_IMAGE_VERSION "$DOCKER_IMAGE_VERSION"
+RUN pip install -r requirements.txt
 
 # Copy application code
 COPY app.py /app/app.py
