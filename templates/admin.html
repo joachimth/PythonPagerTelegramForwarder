@@ -10,9 +10,21 @@
     <div class="container mt-5">
         <h3>Admin Dashboard</h3>
         <form action="/admin" method="post">
-            <!-- You can iterate over the config data to create input fields -->
+            <!-- Iterate over the config data to create input fields -->
+            {% for section, values in config.items() %}
+                <fieldset class="mb-4">
+                    <legend>{{ section }}</legend>
+                    {% for key, value in values.items() %}
+                        <div class="mb-3">
+                            <label for="{{ section }}_{{ key }}" class="form-label">{{ key }}</label>
+                            <input type="text" class="form-control" id="{{ section }}_{{ key }}" name="{{ section }}_{{ key }}" value="{{ value }}">
+                        </div>
+                    {% endfor %}
+                </fieldset>
+            {% endfor %}
             <button type="submit" class="btn btn-primary">Save Changes</button>
         </form>
+        
 
         <div class="mt-4">
             <h4>Logs</h4>
