@@ -11,7 +11,7 @@ from logging.handlers import RotatingFileHandler
 
 def create_logger():
     logger = logging.getLogger('my_logger')
-    handler = RotatingFileHandler('logs/error.log', maxBytes=4000, backupCount=5)
+    handler = RotatingFileHandler('logs/error.log', maxBytes=8000, backupCount=5)
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     handler.setFormatter(formatter)
     logger.addHandler(handler)
@@ -31,6 +31,14 @@ def start_multimon(cfg):
     #        call = "rtl_fm -d0 -f "+freq+" -s 22050 | multimon-ng -t raw -a "+prot+" -f alpha -t raw /dev/stdin -"
     logger.info(f"sh call message: {call}")
     print (call)
+
+    #error.log not working, simple hack to get content to file now..
+    with open("multimon.log", "a") as log_file:
+    log_file.write("\n-------------------------------------\n")
+    log_file.write("Call message:\n")
+    log_file.write(call)
+    log_file.write("\n-------------------------------------\n")
+
     time = strftime("%Y-%m-%d %H:%M", gmtime())
     bot.send_message(os.getenv('TELEGRAM_REC') , 'Time: ' + time + '\nCall Message: ' + call)
     mm = subprocess.Popen(call, shell=True, stdout=subprocess.PIPE)
@@ -41,6 +49,12 @@ def start_multimon(cfg):
             output = mm.stdout.readline().decode(decode_format)
             print (output)
             logger.info(f"raw output: {output}")
+            
+            #error.log not working, simple hack to get content to file now..
+            with open("multimon.log", "a") as log_file:
+            log_file.write("RAW message:\n")
+            log_file.write(output)
+    
             if "Alpha" not in output:
                 continue
             output = output.replace("<NUL>", "")
@@ -56,6 +70,12 @@ def start_multimon(cfg):
             chat_id = os.getenv('TELEGRAM_REC')
             logger.info(f"Chat ID: {chat_id}")
             #bot.send_message(chat_id, 'Time: ' + time + '\nMessage: ' + msg)
+
+            #error.log not working, simple hack to get content to file now..
+            with open("multimon.log", "a") as log_file:
+            log_file.write("Final message:\n")
+            log_file.write('Time: ' + time + '\nMessage: ' + msg)
+            
             bot.send_message(os.getenv('TELEGRAM_REC') , 'Time: ' + time + '\nMessage: ' + msg)
         except Exception as e:
             fail_count += 1
