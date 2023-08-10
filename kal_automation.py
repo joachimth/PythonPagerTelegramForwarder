@@ -60,18 +60,18 @@ def extract_average_hz(output):
             try:
                 # Forventer, at den næste linje indeholder Hz-værdien
                 hz_line = lines[i + 1].strip().split()
-                
+                print(f"hz_line: {hz_line}")
                 # Håndter negativ værdi
-                is_negative = hz_line[0].startswith('-')
-                value_str = hz_line[0].replace("kHz", "").replace("Hz", "").replace("-", "")
+                #is_negative = hz_line[0].startswith('-')
+                value_str = hz_line[0].replace("kHz", "").replace("Hz", "").replace("-", "").replace(" ", "")
                 
                 if "kHz" in hz_line[1]:
                     value = int(float(value_str) * 1000)  # konverter kilohertz til hertz
                 else:
                     value = int(value_str)
                 
-                if is_negative:
-                    value = -value
+                #if is_negative:
+                    #value = -value
                 
                 return value
             except IndexError:
@@ -109,8 +109,6 @@ def main():
 
     # Kører test igen med den fundne error som -e værdi
     third_command = f"kal -c {channel} -e {error} -g {gain}"
-    output3 = run_command(third_command)
-
     output3 = run_command(third_command)
 
     try:
