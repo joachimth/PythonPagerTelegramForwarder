@@ -54,7 +54,7 @@ def extract_absolute_error(output):
     return round(float(match.group(1)))
 
 def extract_average_hz(output):
-    pattern = r"average\s+([-\d]+)Hz"
+    pattern = r"average\s*\n\s*([-\d]+)Hz"
     match = re.search(pattern, output)
     if not match:
         raise ValueError("Kan ikke finde 'average Hz' i output.")
