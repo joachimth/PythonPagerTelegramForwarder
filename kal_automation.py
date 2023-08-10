@@ -60,12 +60,18 @@ def extract_average_hz(output):
             try:
                 # Forventer, at den næste linje indeholder Hz-værdien
                 hz_line = lines[i + 1].strip().split()
-                value_str = hz_line[0].replace("kHz", "").replace("Hz", "")
+                
+                # Håndter negativ værdi
+                is_negative = hz_line[0].startswith('-')
+                value_str = hz_line[0].replace("kHz", "").replace("Hz", "").replace("-", "")
                 
                 if "kHz" in hz_line[1]:
                     value = int(float(value_str) * 1000)  # konverter kilohertz til hertz
                 else:
                     value = int(value_str)
+                
+                if is_negative:
+                    value = -value
                 
                 return value
             except IndexError:
