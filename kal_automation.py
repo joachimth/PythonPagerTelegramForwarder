@@ -37,7 +37,7 @@ def run_command(command):
     return result.stdout
 
 def extract_channel_with_max_power(output):
-    pattern = r"chan: (\d+) \((\d+.\d+)MHz - [\d.]+kHz\)	power: ([\d.]+)"
+    pattern = r"chan:\s+(\d+)\s+\((\d+\.\d+)MHz\s+-\s+[\d.]+kHz\)\s+power:\s+([\d.]+)"
     matches = re.findall(pattern, output)
     if not matches:
         raise ValueError("Ingen kanaler fundet i output.")
