@@ -24,10 +24,9 @@ jobs:
 
     - name: Generate README.md
       run: python generate_readme.py
-
+      
     - name: Commit and push changes
-      run: |
-        git config --local user.name "GitHub Action"
-        git config --local user.email "action@github.com"
-        git commit -m "Updated README.md [skip ci]" README.md || exit 0
-        git push https://${{ secrets.GH_PAT }}@github.com/joachimth/PythonPagerTelegramForwarder.git HEAD:main
+      uses: devops-infra/action-commit-push@main
+      with:
+        github_token: ${{ secrets.GH_PAT }}
+        commit_message: "Updated README.md [skip ci]"
