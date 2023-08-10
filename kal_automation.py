@@ -64,7 +64,7 @@ def extract_average_hz(output):
                 # Håndter negativ værdi
                 #is_negative = hz_line[0].startswith('-')
                 value_str = hz_line[0].replace("kHz", "").replace("Hz", "").replace("-", "").replace(" ", "")
-                
+                print(f"value_str: {value_str}")
                 if "kHz" in hz_line[1]:
                     value = int(float(value_str) * 1000)  # konverter kilohertz til hertz
                 else:
@@ -117,8 +117,8 @@ def main():
         print(f"Fejl: {e}")
         return
 
-    if -500 <= avg_hz <= 500:
-        result_msg = f"Success! Den gennemsnitlige fejl efter kalibrering er {avg_hz} Hz, hvilket er indenfor det acceptable interval."
+    if 0 = avg_hz <= 500:
+        result_msg = f"Success! Den gennemsnitlige fejl efter kalibrering er {avg_hz} Hz, hvilket er indenfor det acceptable interval. Den endelige fejlværdi bliver derfor {error} ppm."
         update_config_file(error)
     else:
         result_msg = f"Fejl! Den gennemsnitlige fejl efter kalibrering er {avg_hz} Hz, hvilket ikke er indenfor det acceptable interval."
