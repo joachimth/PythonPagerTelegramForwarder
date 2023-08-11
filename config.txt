@@ -21,4 +21,4 @@ input_file = /dev/stdin
 gsmband = GSM900
 
 [Encoding]
-encoding_format = utf-8
+encoding_format = iso-8859-1
