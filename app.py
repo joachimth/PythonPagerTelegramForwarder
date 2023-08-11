@@ -34,10 +34,10 @@ def start_multimon(cfg):
 
     #error.log not working, simple hack to get content to file now..
     with open("multimon.log", "a") as log_file:
-    log_file.write("\n-------------------------------------\n")
-    log_file.write("Call message:\n")
-    log_file.write(call)
-    log_file.write("\n-------------------------------------\n")
+        log_file.write("\n-------------------------------------\n")
+        log_file.write("Call message:\n")
+        log_file.write(call)
+        log_file.write("\n-------------------------------------\n")
 
     time = strftime("%Y-%m-%d %H:%M", gmtime())
     bot.send_message(os.getenv('TELEGRAM_REC') , 'Time: ' + time + '\nCall Message: ' + call)
@@ -52,8 +52,8 @@ def start_multimon(cfg):
             
             #error.log not working, simple hack to get content to file now..
             with open("multimon.log", "a") as log_file:
-            log_file.write("RAW message:\n")
-            log_file.write(output)
+                log_file.write("RAW message:\n")
+                log_file.write(output)
     
             if "Alpha" not in output:
                 continue
@@ -73,8 +73,8 @@ def start_multimon(cfg):
 
             #error.log not working, simple hack to get content to file now..
             with open("multimon.log", "a") as log_file:
-            log_file.write("Final message:\n")
-            log_file.write('Time: ' + time + '\nMessage: ' + msg)
+                log_file.write("Final message:\n")
+                log_file.write('Time: ' + time + '\nMessage: ' + msg)
             
             bot.send_message(os.getenv('TELEGRAM_REC') , 'Time: ' + time + '\nMessage: ' + msg)
         except Exception as e:
