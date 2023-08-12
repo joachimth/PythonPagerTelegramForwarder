@@ -20,14 +20,19 @@ def create_logger():
 logger = create_logger()
 
 def start_multimon(cfg):
-    prots = cfg.get('Frequencies', 'prot').split()
+    prots = cfg.get('multimon-ng', 'prot').split()
     prots = ' -a '.join(prots)
     if prots:
         prots = '-a ' + prots
+
+    
     
     bot = Bot(os.getenv('TELEGRAM_API'))
+    
     d = collections.deque(maxlen=100)
-    call = "rtl_fm -d {} -l {} -g {} -p {} -f {} -s {} | multimon-ng -t raw {} -f alpha /dev/stdin -".format(cfg.get('rtl_fm', 'device_index'), cfg.get('rtl_fm', 'squelch_level'), cfg.get('rtl_fm', 'gain'), cfg.get('rtl_fm', 'ppm_error'), cfg.get('Frequencies', 'freq'), cfg.get('rtl_fm', 'sample_rate'), prots)
+
+    
+    call = "rtl_fm {} -d {} -l {} -g {} -p {} -f {} -s {} | multimon-ng -C {} -t raw {} -f alpha /dev/stdin -".format(cfg.get('rtl_fm', 'enable_option'), cfg.get('rtl_fm', 'device_index'), cfg.get('rtl_fm', 'squelch_level'), cfg.get('rtl_fm', 'gain'), cfg.get('rtl_fm', 'ppm_error'), cfg.get('Frequencies', 'freq'), cfg.get('rtl_fm', 'sample_rate'), cfg.get('multimon-ng','pocsag_charset'), prots)
     #        call = "rtl_fm -d0 -f "+freq+" -s 22050 | multimon-ng -t raw -a "+prot+" -f alpha -t raw /dev/stdin -"
     logger.info(f"sh call message: {call}")
     print (call)
@@ -62,7 +67,7 @@ def start_multimon(cfg):
                 continue
             d.append(output)
             msg = output.split("Alpha:", 1)[1]
-            if int(len(msg)) < int(cfg.get('Frequencies', 'min_len')):
+            if int(len(msg)) < int(cfg.get('multimon-ng', 'min_len')):
                 continue
             time = strftime("%Y-%m-%d %H:%M", gmtime())
             print (msg)
