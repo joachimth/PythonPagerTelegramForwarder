@@ -3,8 +3,6 @@ port = 5000
 
 [Frequencies]
 freq = 171.300M
-prot = POCSAG512 POCSAG1200 POCSAG2400
-min_len = 1
 
 [rtl_fm]
 device_index = 0
@@ -17,6 +15,8 @@ squelch_level = 0
 [multimon-ng]
 input_file = /dev/stdin
 pocsag_charset = DK
+prot = POCSAG512 POCSAG1200 POCSAG2400
+min_len = 1
 
 [kal]
 gsmband = GSM900
