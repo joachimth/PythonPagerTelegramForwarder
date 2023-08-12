@@ -48,7 +48,8 @@ RUN apt-get update && apt-get install -y \
     rm -rf /var/lib/apt/lists/* 
 
 # Clone and build multimon-ng
-RUN git clone https://github.com/EliasOenal/multimon-ng.git && \
+# Own fork with Danish language.
+RUN git clone https://github.com/joachimth/multimon-ng.git && \
     cd multimon-ng && \
     mkdir build && \
     cd build && \
