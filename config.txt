@@ -16,6 +16,7 @@ squelch_level = 0
 
 [multimon-ng]
 input_file = /dev/stdin
+pocsag_charset = DK
 
 [kal]
 gsmband = GSM900
