@@ -1,3 +1,7 @@
+# Dockerfile for https://hub.docker.com/joachimth/pythonpagertelegramforwarder/latest
+
+LABEL maintainer "Joachim Thirsbro <joachim@thirsbro.dk>"
+
 # === Build Stage 1: Setting up RTL-SDR and necessary tools ===
 FROM python:3.8-slim-buster as builder
 
