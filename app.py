@@ -11,7 +11,7 @@ from logging.handlers import RotatingFileHandler
 
 def create_logger():
     logger = logging.getLogger('my_logger')
-    handler = RotatingFileHandler('logs/error.log', maxBytes=8000, backupCount=5)
+    handler = RotatingFileHandler('error.log', maxBytes=8000, backupCount=5)
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     handler.setFormatter(formatter)
     logger.addHandler(handler)
@@ -98,7 +98,7 @@ def load_config():
 if __name__ == "__main__":
     if os.path.exists("/tmp/multimon.lock"):
         logger.error("Another instance of this script is already running. Exiting.")
-        sys.exit(1)
+        #sys.exit(1)
     try:
         open("/tmp/multimon.lock", 'w').close()
         while True:
