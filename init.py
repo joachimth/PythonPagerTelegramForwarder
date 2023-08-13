@@ -23,12 +23,12 @@ def main():
     config.read('config.txt')
     flask_port = int(config['Flask']['port'])
 
-    # Kører ppm kalibreringsscript først
-    run_script("kal_automation.py")
-
     # Start Flask app i en ny tråd
     flask_thread = threading.Thread(target=run_flask_app, args=(flask_port,))
-    flask_thread.start()
+    flask_thread.start()    
+    
+    # Kører ppm kalibreringsscript først
+    run_script("kal_automation.py")
 
     # Fortsæt med den normale udførelse
     run_script("app.py")
