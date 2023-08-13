@@ -22,4 +22,5 @@ min_len = 1
 gsmband = GSM900
 
 [Encoding]
-encoding_format = iso-8859-1
+encoding_format = utf-8
+dk_format_not_in_use = iso-8859-1
