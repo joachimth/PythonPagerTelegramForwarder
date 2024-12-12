@@ -60,8 +60,4 @@ def parse_message_dynamic(message, cfg):
 
     return parsed
 
-def load_config(filepath='config.txt'):
-    """Indlæs konfiguration fra en fil."""
-    cfg = ConfigParser()
-    cfg.read(filepath)
-    return cfg
+
