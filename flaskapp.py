@@ -67,6 +67,16 @@ def admin():
     return render_template('admin.html', config=config, log_files=log_files)
 
 
+@app.route('/latest_messages', methods=['GET'])
+@login_required
+def latest_messages():
+    # Simulerer data med de sidste 10 beskeder
+    # Erstat med reelle data fra din besked-database eller din `messages_dict`
+    sorted_messages = sorted(messages_dict.values(), key=lambda x: x['besked.nr'], reverse=True)
+    latest_ten = sorted_messages[:10]  # Henter de sidste 10 beskeder
+
+    return render_template('latest_messages.html', messages=latest_ten)
+
 @app.route('/edit_message_parsing', methods=['GET', 'POST'])
 @login_required
 def edit_message_parsing():
