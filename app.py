@@ -8,6 +8,8 @@ from pytgbot import Bot
 import os
 import logging
 from logging.handlers import RotatingFileHandler
+from message_parser import parse_message_dynamic
+
 
 def create_logger():
     logger = logging.getLogger('my_logger')
@@ -80,8 +82,9 @@ def start_multimon(cfg):
             with open("multimon.log", "a") as log_file:
                 log_file.write("Final message:\n")
                 log_file.write('Time: ' + time + '\nMessage: ' + msg)
-            
+            parsed_message = parse_message_dynamic('Time: ' + time + '\nMessage: ' + msg, cfg)
             bot.send_message(os.getenv('TELEGRAM_REC') , 'Time: ' + time + '\nMessage: ' + msg)
+            bot.send_message(os.getenv('TELEGRAM_REC') , parsed_message)
         except Exception as e:
             fail_count += 1
             logger.error("An error occurred: {}, Line: {}".format(e, sys.exc_info()[-1].tb_lineno))
