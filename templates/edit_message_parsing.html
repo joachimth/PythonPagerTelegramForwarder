@@ -1,0 +1,8 @@
+<form method="POST">
+    <h3>Edit Message Parsing Rules</h3>
+    {% for key, value in config.items() %}
+        <label for="{{ key }}">{{ key }}</label>
+        <input type="text" name="MessageParsing_{{ key }}" value="{{ value }}" />
+    {% endfor %}
+    <button type="submit">Save</button>
+</form>
