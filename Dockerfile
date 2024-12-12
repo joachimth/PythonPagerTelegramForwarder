@@ -1,6 +1,6 @@
 # Dockerfile for https://hub.docker.com/joachimth/pythonpagertelegramforwarder/latest
 # === Build Stage 1: Setting up RTL-SDR and necessary tools ===
-FROM python:3.8-slim-buster as builder
+FROM python:3.10-slim-buster as builder
 
 LABEL maintainer "Joachim Thirsbro <joachim@thirsbro.dk>"
 
@@ -74,7 +74,7 @@ RUN echo "blacklist dvb_usb_rtl8xxxu" >> /etc/modprobe.d/blacklist.conf
 RUN echo "blacklist 8192cu" >> /etc/modprobe.d/blacklist.conf
 
 # === Build Stage 2: Final Stage with application code and Python dependencies ===
-FROM python:3.8-slim-buster
+FROM python:3.10-slim-buster
 
 # Set working directory
 WORKDIR /app
@@ -110,20 +110,10 @@ COPY --from=builder /usr/local/bin/ /usr/local/bin/
 COPY --from=builder /usr/local/lib/ /usr/local/lib/
 COPY --from=builder /usr/local/include/ /usr/local/include/
 
-
 # Copy requirements.txt and install dependencies
-COPY requirements.txt /app/requirements.txt
-RUN pip install -r requirements.txt
+COPY . /app
 
-# Copy application code
-COPY app.py /app/app.py
-COPY config.txt /app/config.txt
-COPY flaskapp.py /app/flaskapp.py
-COPY kal_automation.py /app/kal_automation.py
-COPY templates/admin.html /app/templates/admin.html
-COPY templates/login.html /app/templates/login.html
-COPY templates/log.html /app/templates/log.html
-COPY init.py /app/init.py
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Command to run the application
 CMD [ "python", "init.py" ]
