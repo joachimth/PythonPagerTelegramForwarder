@@ -66,6 +66,23 @@ def admin():
     
     return render_template('admin.html', config=config, log_files=log_files)
 
+
+@app.route('/edit_message_parsing', methods=['GET', 'POST'])
+@login_required
+def edit_message_parsing():
+    if request.method == 'POST':
+        # Opdater config.txt med nye værdier
+        for key in request.form:
+            section, option = key.split("_", 1)
+            config[section][option] = request.form[key]
+        with open('config.txt', 'w') as configfile:
+            config.write(configfile)
+        flash("Message parsing settings updated successfully!")
+
+    return render_template('edit_message_parsing.html', config=config['MessageParsing'])
+
+
+
 @app.route('/view_log/<filename>')
 @login_required
 def view_log(filename):
