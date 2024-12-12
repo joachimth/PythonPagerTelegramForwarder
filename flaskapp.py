@@ -67,6 +67,16 @@ def admin():
     return render_template('admin.html', config=config, log_files=log_files)
 
 
+
+@app.route('/latest_messages_json', methods=['GET'])
+@login_required
+def latest_messages_json():
+    # Returnerer de sidste 10 beskeder som JSON
+    sorted_messages = sorted(messages_dict.values(), key=lambda x: x['besked.nr'], reverse=True)
+    latest_ten = sorted_messages[:10]
+    return {"messages": latest_ten}
+
+
 @app.route('/latest_messages', methods=['GET'])
 @login_required
 def latest_messages():
