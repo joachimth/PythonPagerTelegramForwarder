@@ -68,13 +68,17 @@ def admin():
 
 
 
-@app.route('/latest_messages_json', methods=['GET'])
+@app.route('/latest_messages', methods=['GET'])
 @login_required
-def latest_messages_json():
-    # Returnerer de sidste 10 beskeder som JSON
-    sorted_messages = sorted(messages_dict.values(), key=lambda x: x['besked.nr'], reverse=True)
+def latest_messages():
+    global messages_dict  # Brug den globale variabel
+    if not messages_dict:  # Tjek om dictionary'en er tom
+        flash("Ingen beskeder fundet!")
+        return render_template('latest_messages.html', messages=[])  # Returner tom liste til skabelonen
+    sorted_messages = sorted(messages_dict.values(), key=lambda x: x.get('besked.nr', 0), reverse=True)
     latest_ten = sorted_messages[:10]
-    return {"messages": latest_ten}
+    return render_template('latest_messages.html', messages=latest_ten)
+
 
 
 @app.route('/latest_messages', methods=['GET'])
