@@ -4,6 +4,9 @@ import configparser
 import os
 import glob
 
+
+messages_dict = {}  # Initialiser besked-dictionary
+
 config = configparser.ConfigParser()
 config.read('config.txt')
 flask_port = int(config['Flask']['port'])
