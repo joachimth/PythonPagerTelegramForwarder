@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,34 +7,84 @@
     <script>
         function updateMessages() {
             fetch('/latest_messages_json')
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Netværksfejl under hentning af beskeder');
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     const tableBody = document.getElementById('message-table-body');
                     tableBody.innerHTML = "";  // Rens tabellen
-                    data.messages.forEach(message => {
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${message.besked.nr}</td>
-                            <td>${message.stednavn || "N/A"}</td>
-                            <td>${message.adresse || "N/A"}</td>
-                            <td>${message.postnr || "N/A"}</td>
-                            <td>${message.by || "N/A"}</td>
-                            <td>${message.jobnr || "N/A"}</td>
+
+                    if (data.messages.length === 0) {
+                        // Ingen beskeder fundet
+                        const emptyRow = document.createElement('tr');
+                        emptyRow.innerHTML = `
+                            <td colspan="6" style="text-align: center;">Ingen beskeder fundet.</td>
                         `;
-                        tableBody.appendChild(row);
-                    });
+                        tableBody.appendChild(emptyRow);
+                    } else {
+                        // Tilføj beskeder til tabellen
+                        data.messages.forEach(message => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${message.besked?.nr || "N/A"}</td>
+                                <td>${message.stednavn || "N/A"}</td>
+                                <td>${message.adresse || "N/A"}</td>
+                                <td>${message.postnr || "N/A"}</td>
+                                <td>${message.by || "N/A"}</td>
+                                <td>${message.jobnr || "N/A"}</td>
+                            `;
+                            tableBody.appendChild(row);
+                        });
+                    }
                 })
-                .catch(error => console.error('Error fetching messages:', error));
+                .catch(error => {
+                    console.error('Error fetching messages:', error);
+                    const tableBody = document.getElementById('message-table-body');
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="6" style="text-align: center; color: red;">
+                                Fejl under hentning af beskeder: ${error.message}
+                            </td>
+                        </tr>
+                    `;
+                });
         }
 
         // Opdater tabellen hver 5. sekund
         setInterval(updateMessages, 5000);
         window.onload = updateMessages;
     </script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+    </style>
 </head>
 <body>
     <h1>Seneste Beskeder</h1>
-    <table border="1">
+    <table>
         <thead>
             <tr>
                 <th>Besked Nr</th>
