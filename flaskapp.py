@@ -80,12 +80,14 @@ def latest_messages_json():
 @app.route('/latest_messages', methods=['GET'])
 @login_required
 def latest_messages():
-    # Simulerer data med de sidste 10 beskeder
-    # Erstat med reelle data fra din besked-database eller din `messages_dict`
-    sorted_messages = sorted(messages_dict.values(), key=lambda x: x['besked.nr'], reverse=True)
-    latest_ten = sorted_messages[:10]  # Henter de sidste 10 beskeder
-
+    global messages_dict  # Brug den globale variabel
+    if not messages_dict:  # Tjek om dictionary'en er tom
+        flash("Ingen beskeder fundet!")
+        return render_template('latest_messages.html', messages=[])  # Returner tom liste til skabelonen
+    sorted_messages = sorted(messages_dict.values(), key=lambda x: x.get('besked.nr', 0), reverse=True)
+    latest_ten = sorted_messages[:10]
     return render_template('latest_messages.html', messages=latest_ten)
+
 
 @app.route('/edit_message_parsing', methods=['GET', 'POST'])
 @login_required
