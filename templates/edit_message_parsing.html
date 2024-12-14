@@ -1,8 +1,33 @@
-<form method="POST">
-    <h3>Edit Message Parsing Rules</h3>
-    {% for key, value in config.items() %}
-        <label for="{{ key }}">{{ key }}</label>
-        <input type="text" name="MessageParsing_{{ key }}" value="{{ value }}" />
-    {% endfor %}
-    <button type="submit">Save</button>
-</form>
+{% include 'header.html' %}
+<body>
+    <div class="container mt-5">
+        <!-- Header Card -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3 class="mb-0">Edit Message Parsing Rules</h3>
+            </div>
+        </div>
+
+        <!-- Form Card -->
+        <div class="card">
+            <div class="card-body">
+                <form method="POST">
+                    {% for key, value in config.items() %}
+                        <div class="mb-3">
+                            <label for="{{ key }}" class="form-label">{{ key }}</label>
+                            <input 
+                                type="text" 
+                                class="form-control" 
+                                id="{{ key }}" 
+                                name="MessageParsing_{{ key }}" 
+                                value="{{ value }}" 
+                            />
+                        </div>
+                    {% endfor %}
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+{% include 'footer.html' %}
