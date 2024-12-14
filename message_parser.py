@@ -5,8 +5,13 @@ from configparser import ConfigParser
 # Opsætning af logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
+# Global dictionary til gemte beskeder
+messages_dict = {}
+
 def extract_field(pattern, text, default=None):
-    """Find og returner et felt baseret på regex-mønster."""
+    """
+    Finder og returnerer et felt baseret på regex-mønster.
+    """
     try:
         match = re.search(pattern, text)
         return match.group(1).strip() if match else default
@@ -15,7 +20,9 @@ def extract_field(pattern, text, default=None):
         return default
 
 def generate_google_maps_link(lat, long, adresse=None, postnr=None, by=None):
-    """Generér Google Maps link baseret på lat/long eller adresse/postnr/by."""
+    """
+    Genererer Google Maps link baseret på koordinater eller adresseoplysninger.
+    """
     if lat and long:
         return f"https://www.google.com/maps?q={lat},{long}"
     elif adresse or postnr or by:
@@ -25,33 +32,28 @@ def generate_google_maps_link(lat, long, adresse=None, postnr=None, by=None):
     return ""
 
 def parse_message_dynamic(message, cfg):
-    """Parser en besked dynamisk baseret på betingelser fra config.txt."""
+    """
+    Parser en besked dynamisk baseret på regler og mønstre i config.txt.
+    """
     parsed = {}
 
     try:
-        # Lokationsdetaljer
-        parsed['stednavn'] = extract_field(r"Message:.*?\n([^\n]+)<CR><LF>", message)
-        parsed['adresse'] = extract_field(r"<CR><LF>([^\d]+) \d+", message)
+        # Parse lokationsdetaljer
+        parsed['stednavn'] = extract_field(r"Message:.*?\n([^\n]+)<CR><LF>", message, default=None)
+        parsed['adresse'] = extract_field(r"<CR><LF>([^<]+) \d+", message, default=None)
         parsed['postnr'] = extract_field(r"<CR><LF>(\d{4})", message, default=None)
-        parsed['by'] = extract_field(r"<CR><LF>([A-Za-zæøåÆØÅ\s]+)<CR><LF>", message, default=None)
+        parsed['by'] = extract_field(r"<CR><LF>\d{4} ([^\n<]+)", message, default=None)
 
-        # Koordinater og geografi
+        # Parse koordinater
         parsed['lat'] = extract_field(r"N([\d.]+)", message, default=None)
         parsed['long'] = extract_field(r"E([\d.]+)", message, default=None)
         parsed['linktilgooglemaps'] = generate_google_maps_link(
             parsed['lat'], parsed['long'], parsed['adresse'], parsed['postnr'], parsed['by']
         )
 
-        # Dynamisk egenskabsudtræk fra config
+        # Parse alarmtyper og andre egenskaber fra config
         for key, patterns in cfg.items("MessageParsing"):
-            if key.startswith("alarmtype") or key.startswith("alarmkald"):
-                parsed[key] = any(pat in message for pat in patterns.split(", "))
-
-            elif key.startswith("bygningstype"):
-                if any(pat in message for pat in patterns.split(", ")):
-                    parsed['bygningstype'] = key.split("_")[1]
-
-            elif key.startswith("specifik"):
+            if key.startswith("alarmtype") or key.startswith("alarmkald") or key.startswith("specifik"):
                 parsed[key] = any(pat in message for pat in patterns.split(", "))
 
     except Exception as e:
@@ -60,4 +62,53 @@ def parse_message_dynamic(message, cfg):
 
     return parsed
 
+def format_message(data):
+    """
+    Formaterer dictionary til en læsbar beskedtekst.
+    """
+    message_parts = []
 
+    # Tilføj relevante dele til besked
+    if data.get('stednavn'):
+        message_parts.append(f"Stednavn: {data['stednavn']}")
+    if data.get('adresse'):
+        message_parts.append(f"Adresse: {data['adresse']}")
+    if data.get('postnr') and data.get('by'):
+        message_parts.append(f"Postnr og by: {data['postnr']} {data['by']}")
+    if data.get('linktilgooglemaps'):
+        message_parts.append(f"Google Maps: {data['linktilgooglemaps']}")
+
+    # Tilføj alarmtyper og andre detaljer
+    for key, value in data.items():
+        if key.startswith('alarmtype_') or key.startswith('alarmkald_') or key.startswith('specifik_'):
+            if value:
+                message_parts.append(f"{key.replace('_', ' ').title()}: {value}")
+
+    # Returner samlet besked
+    return "\n".join(message_parts)
+
+def load_config(filepath='config.txt'):
+    """
+    Indlæser konfigurationsindstillinger fra en fil.
+    """
+    cfg = ConfigParser()
+    cfg.read(filepath)
+    return cfg
+
+def update_messages_dict(message, cfg):
+    """
+    Opdaterer `messages_dict` med en ny besked.
+    """
+    global messages_dict
+
+    # Parse beskeden
+    parsed_message = parse_message_dynamic(message, cfg)
+
+    # Bestem unik nøgle (fx via jobnr eller adresse)
+    unique_key = parsed_message.get('adresse') or parsed_message.get('lat') or len(messages_dict)
+
+    # Opdater eksisterende besked eller tilføj ny
+    if unique_key in messages_dict:
+        messages_dict[unique_key].update(parsed_message)
+    else:
+        messages_dict[unique_key] = parsed_message
