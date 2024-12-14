@@ -1,163 +1,102 @@
 import subprocess
 import re
 import configparser
-import sys
 import os
 
-def get_gain_from_config():
-    with open("config.txt", "r") as file:
-        content = file.readlines()
+def read_config_value(section, key, config_file="config.txt"):
+    """Læser en værdi fra config-filen."""
+    config = configparser.ConfigParser()
+    config.read(config_file)
+    try:
+        return config.get(section, key)
+    except (configparser.NoSectionError, configparser.NoOptionError):
+        raise ValueError(f"Værdi '{key}' i sektion '{section}' ikke fundet i {config_file}.")
+
+def update_config_file(key, value, config_file="config.txt"):
+    """Opdaterer en specifik værdi i config-filen."""
+    config = configparser.ConfigParser()
+    config.read(config_file)
+    section = "rtl_fm"
+    if section not in config.sections():
+        config.add_section(section)
+    config.set(section, key, str(value))
     
-    for line in content:
-        if "gain" in line:
-            return line.split("=")[1].strip()
-    raise ValueError("Gain værdi ikke fundet i config.txt.")
-
-def get_gsmband_from_config():
-    with open("config.txt", "r") as file:
-        content = file.readlines()
+    with open(config_file, "w") as file:
+        config.write(file)
     
-    for line in content:
-        if "gsmband" in line:
-            return line.split("=")[1].strip()
-    raise ValueError("GSM Bånd værdi ikke fundet i config.txt.")
-
-def update_config_file(new_ppm_error):
-    with open("config.txt", "r") as file:
-        content = file.read()
-    print("\n-------------------------------------\n")
-    print(f"Inden rettelser:\n{content}\n")
-    # Finder og erstatter ppm_error linjen med den nye værdi
-    newcontent = re.sub(r"ppm_error\s*=\s*\d+", f"ppm_error = {new_ppm_error}", content)
-    print("\n-------------------------------------\n")
-    print(f"Efter rettelser:\n{content}\n")
-
-    with open("config.txt", "w") as file:
-        file.write(newcontent)
-
     with open("kalrun.log", "a") as log_file:
-        log_file.write(f"Updating config file:\n")
-        log_file.write("\n-------------------------------------\n")
-        log_file.write("Before changes:\n")
-        log_file.write(content)
-        log_file.write("\n-------------------------------------\n")
-        log_file.write("\nAfter Changes:\n")
-        log_file.write(newcontent)
-        log_file.write("\n-------------------------------------\n")
+        log_file.write(f"Updated {key} in {config_file} to {value}\n")
 
 def run_command(command):
+    """Kører en shell-kommando og logger output."""
     result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, text=True)
-    
+    log_output = (
+        f"Executing: {command}\n"
+        f"Output:\n{result.stdout}\n"
+        f"Error:\n{result.stderr}\n"
+        "-------------------------------------\n"
+    )
     with open("kalrun.log", "a") as log_file:
-        log_file.write(f"Executing: {command}\n")
-        log_file.write("Output:\n")
-        log_file.write(result.stdout)
-        log_file.write("\nError:\n")
-        log_file.write(result.stderr)
-        log_file.write("\n-------------------------------------\n")
-
+        log_file.write(log_output)
     return result.stdout
 
-def extract_channel_with_max_power(output):
-    pattern = r"chan:\s+(\d+)\s+\((\d+\.\d+)MHz\s+-\s+[\d.]+kHz\)\s+power:\s+([\d.]+)"
-    matches = re.findall(pattern, output)
-    if not matches:
-        raise ValueError("Ingen kanaler fundet i output.")
-    
-    max_power_channel = max(matches, key=lambda x: float(x[2]))
-    return max_power_channel[0]
-
-def extract_absolute_error(output):
-    pattern = r"average absolute error: ([\d.]+) ppm"
+def extract_value_from_output(output, pattern, error_message):
+    """Ekstraherer en værdi fra output baseret på et regex-mønster."""
     match = re.search(pattern, output)
     if not match:
-        raise ValueError("Kan ikke finde 'average absolute error' i output.")
-    
-    return round(float(match.group(1)))
-
-def extract_average_hz(output):
-    lines = output.split('\n')
-    for i, line in enumerate(lines):
-        if "average" in line:
-            try:
-                # Forventer, at den næste linje indeholder Hz-værdien
-                hz_line = lines[i + 1].strip().split()
-                print(f"hz_line: {hz_line}")
-
-                if hz_line[0].startswith('-'):
-                    value_str = hz_line[1].replace("kHz", "").replace("Hz", "").replace("-", "").replace(" ", "")
-                else:
-                    value_str = hz_line[0].replace("kHz", "").replace("Hz", "").replace("-", "").replace(" ", "")
-                
-                print(f"value_str: {value_str}")
-                if "kHz" in hz_line[1]:
-                    value = int(float(value_str) * 1000)  # konverter kilohertz til hertz
-                else:
-                    value = int(value_str)
-                
-                return value
-            except IndexError:
-                raise ValueError("Kan ikke finde 'average Hz' i output.")
-    raise ValueError("Kan ikke finde 'average Hz' i output.")
+        raise ValueError(error_message)
+    return match.group(1)
 
 def main():
-    # Slet kalrun.log ved opstart, hvis den eksisterer
+    # Slet kalrun.log ved opstart
     if os.path.exists("kalrun.log"):
         os.remove("kalrun.log")
-    
-    try:
-        gain = get_gain_from_config()
-    except ValueError as e:
-        print(f"Fejl: {e}")
-        return
 
     try:
-        gsmband = get_gsmband_from_config()
+        gain = read_config_value("rtl_fm", "gain")
+        gsmband = read_config_value("kal", "gsmband")
     except ValueError as e:
-        print(f"Fejl: {e}")
+        print(f"Konfigurationsfejl: {e}")
         return
-    
-    first_command = f"kal -s {gsmband} -e 0 -g {gain}"
-    output1 = run_command(first_command)
 
+    # Find kanal med maksimal styrke
     try:
-        channel = extract_channel_with_max_power(output1)
+        command1 = f"kal -s {gsmband} -e 0 -g {gain}"
+        output1 = run_command(command1)
+        channel = extract_value_from_output(output1, r"chan:\s+(\d+)", "Ingen kanaler fundet.")
     except ValueError as e:
-        print(f"Fejl: {e}")
+        print(f"Fejl under første kommando: {e}")
         return
 
-    second_command = f"kal -c {channel} -e 0 -g {gain}"
-    output2 = run_command(second_command)
-
+    # Udfør kalibrering på den valgte kanal
     try:
-        error = extract_absolute_error(output2)
+        command2 = f"kal -c {channel} -e 0 -g {gain}"
+        output2 = run_command(command2)
+        error_ppm = int(extract_value_from_output(output2, r"average absolute error: ([\d.]+)", "Ingen ppm-fejl fundet."))
     except ValueError as e:
-        print(f"Fejl: {e}")
+        print(f"Fejl under anden kommando: {e}")
         return
 
-    # Kører test igen med den fundne error som -e værdi
-    third_command = f"kal -c {channel} -e {error} -g {gain}"
-    output3 = run_command(third_command)
-
+    # Test med ny ppm-fejl og beregn gennemsnitsfejl i Hz
     try:
-        avg_hz = extract_average_hz(output3)
+        command3 = f"kal -c {channel} -e {error_ppm} -g {gain}"
+        output3 = run_command(command3)
+        avg_hz = int(extract_value_from_output(output3, r"average.*?([\d]+)\s*Hz", "Ingen gennemsnitsfejl fundet."))
     except ValueError as e:
-        print(f"Fejl: {e}")
+        print(f"Fejl under tredje kommando: {e}")
         return
 
+    # Vurder resultaterne
     if avg_hz <= 500:
-        result_msg = f"Success! Den gennemsnitlige fejl efter kalibrering er {avg_hz} Hz, hvilket er indenfor det acceptable interval. Den endelige fejlværdi bliver derfor {error} ppm."
-        update_config_file(error)
+        print(f"Kalibrering succesfuld: {avg_hz} Hz fejl (acceptablet).")
+        update_config_file("ppm_error", error_ppm)
     else:
-        result_msg = f"Fejl! Den gennemsnitlige fejl efter kalibrering er {avg_hz} Hz, hvilket ikke er indenfor det acceptable interval."
+        print(f"Kalibrering fejlede: {avg_hz} Hz fejl (ikke acceptablet).")
 
-    print(result_msg)
-
+    # Log resultatet
     with open("kalrun.log", "a") as log_file:
-        log_file.write(output1)
-        log_file.write(output2)
-        log_file.write(output3)
-        log_file.write(result_msg + "\n")
+        log_file.write(f"Final PPM Error: {error_ppm}\n")
+        log_file.write(f"Final Average Hz Error: {avg_hz} Hz\n")
 
 if __name__ == "__main__":
     main()
