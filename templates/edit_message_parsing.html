@@ -5,26 +5,70 @@
         <div class="card mb-4">
             <div class="card-header">
                 <h3 class="mb-0">Edit Message Parsing Rules</h3>
+                <p class="text-muted">Update or add rules for parsing messages dynamically.</p>
             </div>
         </div>
 
-        <!-- Form Card -->
-        <div class="card">
+        <!-- Form Card for Existing Keys -->
+        <div class="card mb-4">
             <div class="card-body">
+                <h4 class="card-title">Existing Rules</h4>
                 <form method="POST">
-                    {% for key, value in config.items() %}
-                        <div class="mb-3">
-                            <label for="{{ key }}" class="form-label">{{ key }}</label>
-                            <input 
-                                type="text" 
-                                class="form-control" 
-                                id="{{ key }}" 
-                                name="MessageParsing_{{ key }}" 
-                                value="{{ value }}" 
-                            />
+                    {% for key, value in message_parsing %}
+                        <div class="row mb-3">
+                            <div class="col-md-5">
+                                <label for="key_{{ key }}" class="form-label">Key</label>
+                                <input 
+                                    type="text" 
+                                    class="form-control" 
+                                    id="key_{{ key }}" 
+                                    name="key_{{ key }}" 
+                                    value="{{ key }}" 
+                                    readonly
+                                />
+                            </div>
+                            <div class="col-md-7">
+                                <label for="value_{{ key }}" class="form-label">Value</label>
+                                <input 
+                                    type="text" 
+                                    class="form-control" 
+                                    id="value_{{ key }}" 
+                                    name="value_{{ key }}" 
+                                    value="{{ value }}" 
+                                />
+                            </div>
                         </div>
                     {% endfor %}
-                    <button type="submit" class="btn btn-primary">Save</button>
+            </div>
+        </div>
+
+        <!-- Form Card for Adding New Keys -->
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Add New Rule</h4>
+                <div class="row mb-3">
+                    <div class="col-md-5">
+                        <label for="new_key" class="form-label">New Key</label>
+                        <input 
+                            type="text" 
+                            class="form-control" 
+                            id="new_key" 
+                            name="new_key" 
+                            placeholder="Enter new key" 
+                        />
+                    </div>
+                    <div class="col-md-7">
+                        <label for="new_value" class="form-label">New Value</label>
+                        <input 
+                            type="text" 
+                            class="form-control" 
+                            id="new_value" 
+                            name="new_value" 
+                            placeholder="Enter value for new key" 
+                        />
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
                 </form>
             </div>
         </div>
