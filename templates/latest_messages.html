@@ -1,9 +1,36 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Seneste Beskeder</title>
+{% include 'header.html' %}
+<body>
+    <div class="container mt-5">
+        <!-- Titel -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h1 class="text-center">Seneste Beskeder</h1>
+            </div>
+        </div>
+
+        <!-- Tabel -->
+        <div class="card">
+            <div class="card-body">
+                <table class="table table-striped table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Besked Nr</th>
+                            <th>Stednavn</th>
+                            <th>Adresse</th>
+                            <th>Postnr</th>
+                            <th>By</th>
+                            <th>Job Nr</th>
+                        </tr>
+                    </thead>
+                    <tbody id="message-table-body">
+                        <!-- Dynamisk opdateret med JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript til dynamisk opdatering -->
     <script>
         function updateMessages() {
             fetch('/latest_messages_json')
@@ -15,13 +42,13 @@
                 })
                 .then(data => {
                     const tableBody = document.getElementById('message-table-body');
-                    tableBody.innerHTML = "";  // Rens tabellen
+                    tableBody.innerHTML = ""; // Rens tabellen
 
                     if (data.messages.length === 0) {
                         // Ingen beskeder fundet
                         const emptyRow = document.createElement('tr');
                         emptyRow.innerHTML = `
-                            <td colspan="6" style="text-align: center;">Ingen beskeder fundet.</td>
+                            <td colspan="6" class="text-center">Ingen beskeder fundet.</td>
                         `;
                         tableBody.appendChild(emptyRow);
                     } else {
@@ -45,7 +72,7 @@
                     const tableBody = document.getElementById('message-table-body');
                     tableBody.innerHTML = `
                         <tr>
-                            <td colspan="6" style="text-align: center; color: red;">
+                            <td colspan="6" class="text-center text-danger">
                                 Fejl under hentning af beskeder: ${error.message}
                             </td>
                         </tr>
@@ -57,47 +84,5 @@
         setInterval(updateMessages, 5000);
         window.onload = updateMessages;
     </script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-        th {
-            background-color: #f4f4f4;
-        }
-        tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-        tr:hover {
-            background-color: #f1f1f1;
-        }
-    </style>
-</head>
-<body>
-    <h1>Seneste Beskeder</h1>
-    <table>
-        <thead>
-            <tr>
-                <th>Besked Nr</th>
-                <th>Stednavn</th>
-                <th>Adresse</th>
-                <th>Postnr</th>
-                <th>By</th>
-                <th>Job Nr</th>
-            </tr>
-        </thead>
-        <tbody id="message-table-body">
-            <!-- Dynamisk opdateret med JavaScript -->
-        </tbody>
-    </table>
 </body>
-</html>
+{% include 'footer.html' %}
