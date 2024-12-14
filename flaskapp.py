@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, send_from_directory
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify  # Tilføj jsonify her
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user
 import configparser
 import os
