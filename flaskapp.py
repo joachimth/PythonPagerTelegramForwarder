@@ -81,6 +81,25 @@ def latest_messages():
     latest_ten = sorted_messages[:10]
     return render_template('latest_messages.html', messages=latest_ten)
 
+@app.route('/latest_messages_json', methods=['GET'])
+@login_required
+def latest_messages_json():
+    global messages_dict  # Sørg for at bruge den globale variabel
+
+    # Tjek, om messages_dict er tom
+    if not messages_dict:
+        return jsonify({"messages": []})
+
+    # Sortér og returner de sidste 10 beskeder
+    try:
+        sorted_messages = sorted(messages_dict.values(), key=lambda x: x.get('besked.nr', 0), reverse=True)
+        latest_ten = sorted_messages[:10]
+        return jsonify({"messages": latest_ten})
+    except Exception as e:
+        # Log fejl og returnér en venlig besked til klienten
+        logging.error(f"Fejl under hentning af beskeder: {e}")
+        return jsonify({"error": "Kunne ikke hente beskeder. Prøv igen senere."}), 500
+
 
 @app.route('/edit_message_parsing', methods=['GET', 'POST'])
 @login_required
