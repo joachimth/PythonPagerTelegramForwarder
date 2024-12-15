@@ -40,12 +40,33 @@ def run_command(command):
         log_file.write(log_output)
     return result.stdout
 
-def extract_value_from_output(output, pattern, error_message):
-    """Ekstraherer en værdi fra output baseret på et regex-mønster."""
+def extract_channel_with_max_power(output):
+    """Finder kanalen med den højeste power fra output."""
+    pattern = r"chan:\s+(\d+).*?power:\s+([\d.]+)"
+    matches = re.findall(pattern, output)
+    if not matches:
+        raise ValueError("Ingen kanaler fundet i output.")
+    max_channel = max(matches, key=lambda x: float(x[1]))
+    return max_channel[0]
+
+def extract_absolute_error(output):
+    """Ekstraherer gennemsnitlig absolut fejl i ppm fra output."""
+    pattern = r"average absolute error:\s+([-\d.]+)\s*ppm"
     match = re.search(pattern, output)
     if not match:
-        raise ValueError(error_message)
-    return match.group(1)
+        raise ValueError("Kan ikke finde 'average absolute error' i output.")
+    return round(float(match.group(1)))
+
+def extract_average_hz(output):
+    """Ekstraherer gennemsnitsfrekvensfejl i Hz fra output."""
+    pattern = r"average\s+[^\n]*\+\s+([\d.]+)\s*k?Hz"
+    match = re.search(pattern, output)
+    if not match:
+        raise ValueError("Kan ikke finde 'average Hz' i output.")
+    value = float(match.group(1))
+    if "kHz" in match.string:
+        value *= 1000  # Konverter til Hz, hvis værdien er i kHz
+    return int(value)
 
 def main():
     # Slet kalrun.log ved opstart
@@ -63,7 +84,7 @@ def main():
     try:
         command1 = f"kal -s {gsmband} -e 0 -g {gain}"
         output1 = run_command(command1)
-        channel = extract_value_from_output(output1, r"chan:\s+(\d+)", "Ingen kanaler fundet.")
+        channel = extract_channel_with_max_power(output1)
     except ValueError as e:
         print(f"Fejl under første kommando: {e}")
         return
@@ -72,7 +93,7 @@ def main():
     try:
         command2 = f"kal -c {channel} -e 0 -g {gain}"
         output2 = run_command(command2)
-        error_ppm = int(extract_value_from_output(output2, r"average absolute error: ([\d.]+)", "Ingen ppm-fejl fundet."))
+        error_ppm = extract_absolute_error(output2)
     except ValueError as e:
         print(f"Fejl under anden kommando: {e}")
         return
@@ -81,7 +102,7 @@ def main():
     try:
         command3 = f"kal -c {channel} -e {error_ppm} -g {gain}"
         output3 = run_command(command3)
-        avg_hz = int(extract_value_from_output(output3, r"average.*?([\d]+)\s*Hz", "Ingen gennemsnitsfejl fundet."))
+        avg_hz = extract_average_hz(output3)
     except ValueError as e:
         print(f"Fejl under tredje kommando: {e}")
         return
