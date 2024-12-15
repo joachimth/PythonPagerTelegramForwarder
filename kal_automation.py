@@ -74,56 +74,35 @@ def log_message(message):
         log_file.write(message + "\n")
 
 def main():
-    # Slet kalrun.log ved opstart
-    if os.path.exists("kalrun.log"):
-        os.remove("kalrun.log")
-
-    try:
-        gain = read_config_value("rtl_fm", "gain")
-        gsmband = read_config_value("kal", "gsmband")
-    except ValueError as e:
-        log_message(f"Konfigurationsfejl: {e}")
-        return
-
-    # Find kanal med maksimal styrke
-    try:
-        command1 = f"kal -s {gsmband} -e 0 -g {gain}"
-        output1 = run_command(command1)
-        channel = extract_channel_with_max_power(output1)
-    except ValueError as e:
-        log_message(f"Fejl under første kommando: {e}")
-        return
-
-    # Udfør kalibrering på den valgte kanal
-    try:
-        command2 = f"kal -c {channel} -e 0 -g {gain}"
-        output2 = run_command(command2)
-        error_ppm = extract_absolute_error(output2)  # Bevarer to decimaler
-    except ValueError as e:
-        log_message(f"Fejl under anden kommando: {e}")
-        return
-
-    # Test med ny ppm-fejl og beregn gennemsnitsfejl i Hz
-    try:
-        command3 = f"kal -c {channel} -e {error_ppm} -g {gain}"
-        output3 = run_command(command3)
-        avg_hz = extract_average_hz(output3)
-    except ValueError as e:
-        log_message(f"Fejl under tredje kommando: {e}")
-        return
-
-    # Vurder resultaterne
-    tolerance_hz = 750  # Hæv tolerancen til 750 Hz
-    if avg_hz <= tolerance_hz:
-        success_message = f"Kalibrering succesfuld: {avg_hz} Hz fejl (acceptablet)."
-        update_config_file("ppm_error", error_ppm)
+    # Læs konfigurationen
+    cfg = configparser.ConfigParser()
+    cfg.read("config.txt")
+    
+    # Tjek om kalibrering er aktiveret
+    if cfg.getboolean("kal", "enable_calibration"):
+        logging.info("Kalibrering er aktiveret. Starter kalibreringsprocessen...")
+        # Resten af kalibreringsprocessen
+        try:
+            gain = get_gain_from_config()
+            gsmband = get_gsmband_from_config()
+            first_command = f"kal -s {gsmband} -e 0 -g {gain}"
+            output1 = run_command(first_command)
+            channel = extract_channel_with_max_power(output1)
+            second_command = f"kal -c {channel} -e 0 -g {gain}"
+            output2 = run_command(second_command)
+            error = extract_absolute_error(output2)
+            third_command = f"kal -c {channel} -e {error} -g {gain}"
+            output3 = run_command(third_command)
+            avg_hz = extract_average_hz(output3)
+            if avg_hz <= 750:
+                logging.info(f"Kalibrering succesfuld: Gennemsnitlig fejl {avg_hz} Hz.")
+                update_config_file(error)
+            else:
+                logging.warning(f"Kalibrering mislykkedes: Gennemsnitlig fejl {avg_hz} Hz.")
+        except Exception as e:
+            logging.error(f"Fejl under kalibrering: {e}")
     else:
-        success_message = f"Kalibrering fejlede: {avg_hz} Hz fejl (ikke acceptablet)."
-
-    # Log resultatet
-    log_message(f"Final PPM Error: {error_ppm}")
-    log_message(f"Final Average Hz Error: {avg_hz} Hz")
-    log_message(success_message)
+        logging.info("Kalibrering er deaktiveret. Springer over.")
 
 if __name__ == "__main__":
     main()
