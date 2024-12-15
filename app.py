@@ -9,6 +9,9 @@ from message_receiver import fetch_latest_messages  # Import fra message_receive
 
 # Logger opsætning
 def create_logger():
+    """
+    Opretter en logger til applikationen.
+    """
     logger = logging.getLogger('app_logger')
     handler = RotatingFileHandler('app.log', maxBytes=10 * 1024 * 1024, backupCount=5)
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
