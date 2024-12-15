@@ -2,8 +2,6 @@ import subprocess
 import collections
 import logging
 import configparser
-from message_parser import parse_message_dynamic, format_message
-from telegram_sender import TelegramSender
 
 # Logger opsætning
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -22,7 +20,7 @@ def load_config(filepath='config.txt'):
 
 def start_message_receiver(cfg):
     """
-    Starter beskedmodtagerprocessen og håndterer beskeder fra multimon-ng.
+    Starter beskedmodtagerprocessen og gemmer rå beskeder i recent_messages.
     """
     prots = cfg.get('multimon-ng', 'prot').split()
     prots = ' -a '.join(prots)
@@ -47,7 +45,6 @@ def start_message_receiver(cfg):
     logger.info(f"Command executed: {command}")
 
     process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    decode_format = cfg.get('Encoding', 'encoding_format')
 
     try:
         while True:
@@ -74,7 +71,7 @@ def start_message_receiver(cfg):
 
 def fetch_latest_messages():
     """
-    Henter de seneste beskeder fra `recent_messages`.
+    Returnerer de seneste rå beskeder fra `recent_messages`.
     """
     return list(recent_messages)
 
