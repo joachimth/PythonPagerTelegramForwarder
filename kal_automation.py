@@ -118,6 +118,13 @@ def main():
     Hovedfunktionen for kalibrering.
     """
     try:
+        # Indlæs konfiguration
+        cfg = load_config()
+
+        # Indlæs nødvendige parametre fra config
+        gsmband = cfg.get("kal", "gsmband")
+        gain = cfg.get("rtl_fm", "gain")
+
         logging.info("Starter kalibreringsproces...")
 
         # Kør første kommando for at finde kanal med maksimal signalstyrke
@@ -138,7 +145,7 @@ def main():
             logging.error("Kunne ikke finde absolut fejl.")
             return
 
-        logging.info(f"Fundet absolut fejl: {absolute_error} ppm")
+        logging.info(f"Fundet absolut fejl: {absolute_error:.2f} ppm")
 
         # Kør tredje kommando med den fundne fejl for at finde gennemsnitlig fejl
         third_command = f"kal -c {channel} -e {absolute_error:.2f} -g {gain}"
@@ -157,6 +164,6 @@ def main():
 
     except Exception as e:
         logging.error(f"Uventet fejl under kalibrering: {e}", exc_info=True)
-    
+
 if __name__ == "__main__":
     main()
