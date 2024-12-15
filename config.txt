@@ -25,7 +25,7 @@ min_len = 1
 [kal]
 # Indstillinger for kalibrering
 gsmband = "GSM900"
-enable_calibration = "true"
+enable_calibration = true
 
 [Encoding]
 # Encoding indstillinger
