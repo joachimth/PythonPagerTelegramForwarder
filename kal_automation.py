@@ -50,12 +50,12 @@ def extract_channel_with_max_power(output):
     return max_channel[0]
 
 def extract_absolute_error(output):
-    """Ekstraherer gennemsnitlig absolut fejl i ppm fra output."""
+    """Ekstraherer gennemsnitlig absolut fejl i ppm fra output med to decimaler."""
     pattern = r"average absolute error:\s+([-\d.]+)\s*ppm"
     match = re.search(pattern, output)
     if not match:
         raise ValueError("Kan ikke finde 'average absolute error' i output.")
-    return round(float(match.group(1)))
+    return round(float(match.group(1)), 2)  # Bevar to decimaler
 
 def extract_average_hz(output):
     """Ekstraherer gennemsnitsfrekvensfejl i Hz fra output."""
@@ -93,7 +93,7 @@ def main():
     try:
         command2 = f"kal -c {channel} -e 0 -g {gain}"
         output2 = run_command(command2)
-        error_ppm = extract_absolute_error(output2)
+        error_ppm = extract_absolute_error(output2)  # Bevarer to decimaler
     except ValueError as e:
         print(f"Fejl under anden kommando: {e}")
         return
