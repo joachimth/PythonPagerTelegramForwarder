@@ -9,6 +9,9 @@ from telegram_sender import TelegramSender
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("message_receiver")
 
+# Global beskedbuffer
+recent_messages = collections.deque(maxlen=100)
+
 def load_config(filepath='config.txt'):
     """
     Indlæser konfigurationsindstillinger fra config.txt.
@@ -25,11 +28,6 @@ def start_message_receiver(cfg):
     prots = ' -a '.join(prots)
     if prots:
         prots = '-a ' + prots
-
-    # Initialiser Telegram-sender
-    telegram = TelegramSender()
-
-    recent_messages = collections.deque(maxlen=100)
 
     command = (
         "rtl_fm {} -d {} -l {} -g {} -p {} -f {} -s {} | multimon-ng -C {} -t raw {} -f alpha /dev/stdin -"
@@ -50,7 +48,6 @@ def start_message_receiver(cfg):
 
     process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     decode_format = cfg.get('Encoding', 'encoding_format')
-    fail_count = 0
 
     try:
         while True:
@@ -67,15 +64,6 @@ def start_message_receiver(cfg):
                 continue
 
             recent_messages.append(output)
-            msg = output.split("Alpha:", 1)[1].strip()
-            if len(msg) < int(cfg.get('multimon-ng', 'min_len')):
-                continue
-
-            parsed_message = parse_message_dynamic(msg, cfg)
-            formatted_message = format_message(parsed_message)
-
-            # Brug TelegramSender til at sende beskeden
-            telegram.send_message(formatted_message)
 
     except Exception as e:
         logger.error(f"Error in message processing: {e}")
@@ -83,6 +71,12 @@ def start_message_receiver(cfg):
     finally:
         process.terminate()
         logger.info("Message receiver process terminated.")
+
+def fetch_latest_messages():
+    """
+    Henter de seneste beskeder fra `recent_messages`.
+    """
+    return list(recent_messages)
 
 if __name__ == "__main__":
     try:
