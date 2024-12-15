@@ -3,7 +3,7 @@ import sys
 import time
 import logging
 from logging.handlers import RotatingFileHandler
-from message_parser import parse_message_dynamic, format_message
+from message_parser import parse_message_dynamic, format_message, load_config, insert_example_messages
 from message_receiver import fetch_latest_messages
 from telegram_sender import TelegramSender
 
@@ -56,6 +56,14 @@ if __name__ == "__main__":
     """
     Hovedprogram til at hente beskeder og sende dem til Telegram.
     """
+    def main():
+    logger.info("Indlæser test eksempler, app.py")
+    # Indlæs konfiguration
+    cfg = load_config()
+
+    # Tilføj eksempelbeskeder
+    insert_example_messages(cfg)
+    
     logger.info("Starter app.py")
     try:
         while True:
