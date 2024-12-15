@@ -10,14 +10,16 @@ import logging
 from logging.handlers import RotatingFileHandler
 from message_parser import parse_message_dynamic, format_message
 
-
 def create_logger():
+    """
+    Opretter logger til applikationen med INFO-niveau som standard.
+    """
     logger = logging.getLogger('my_logger')
-    handler = RotatingFileHandler('error.log', maxBytes=8000, backupCount=5)
+    handler = RotatingFileHandler('app.log', maxBytes=8000, backupCount=5)
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     handler.setFormatter(formatter)
     logger.addHandler(handler)
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.INFO)  # Indstil logniveau til INFO
     return logger
 
 logger = create_logger()
@@ -49,16 +51,10 @@ def start_multimon(cfg):
         )
     )
     logger.info(f"Command executed: {call}")
-    print(call)
-
-    with open("multimon.log", "a") as log_file:
-        log_file.write("\n-------------------------------------\n")
-        log_file.write("Call message:\n")
-        log_file.write(call)
-        log_file.write("\n-------------------------------------\n")
 
     time_str = strftime("%Y-%m-%d %H:%M", gmtime())
     bot.send_message(os.getenv('TELEGRAM_REC'), f"Time: {time_str}\nCall Message: {call}")
+
     mm = subprocess.Popen(call, shell=True, stdout=subprocess.PIPE)
     decode_format = cfg.get('Encoding', 'encoding_format')
     fail_count = 0
@@ -70,8 +66,6 @@ def start_multimon(cfg):
                 continue
 
             logger.info(f"Raw output: {output}")
-            with open("multimon.log", "a") as log_file:
-                log_file.write(f"RAW message:\n{output}\n")
 
             if "Alpha" not in output:
                 continue
@@ -95,8 +89,7 @@ def start_multimon(cfg):
             logger.info(f"Sending to Chat ID: {chat_id}")
 
             bot.send_message(chat_id, formatted_message)
-            with open("multimon.log", "a") as log_file:
-                log_file.write(f"Final parsed message:\n{formatted_message}\n")
+            logger.info(f"Final parsed message: {formatted_message}")
 
         except Exception as e:
             fail_count += 1
