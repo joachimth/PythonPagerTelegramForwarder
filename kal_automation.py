@@ -1,108 +1,162 @@
 import subprocess
 import re
+import logging
 import configparser
 import os
 
-def read_config_value(section, key, config_file="config.txt"):
-    """Læser en værdi fra config-filen."""
-    config = configparser.ConfigParser()
-    config.read(config_file)
+# Opsætning af logging
+logging.basicConfig(
+    filename="kalibration.log",
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
+
+def get_config_value(config, section, key, default=None):
+    """
+    Hent en værdi fra config-filen med standardværdi.
+    """
     try:
         return config.get(section, key)
-    except (configparser.NoSectionError, configparser.NoOptionError):
-        raise ValueError(f"Værdi '{key}' i sektion '{section}' ikke fundet i {config_file}.")
+    except Exception as e:
+        logging.warning(f"Kunne ikke hente værdien {key} fra sektionen {section}: {e}")
+        return default
 
-def update_config_file(key, value, config_file="config.txt"):
-    """Opdaterer en specifik værdi i config-filen."""
-    config = configparser.ConfigParser()
-    config.read(config_file)
-    section = "rtl_fm"
-    if section not in config.sections():
-        config.add_section(section)
-    config.set(section, key, str(value))
-    
-    with open(config_file, "w") as file:
-        config.write(file)
-    
-    with open("kalrun.log", "a") as log_file:
-        log_file.write(f"Updated {key} in {config_file} to {value}\n")
+def update_config_value(config, section, key, value, config_file='config.txt'):
+    """
+    Opdater en værdi i config-filen og gem ændringer.
+    """
+    try:
+        if section not in config.sections():
+            config.add_section(section)
+        config.set(section, key, value)
+        with open(config_file, 'w') as file:
+            config.write(file)
+        logging.info(f"Opdaterede {key} i sektionen {section} med værdien {value}")
+    except Exception as e:
+        logging.error(f"Fejl under opdatering af config-fil: {e}")
 
 def run_command(command):
-    """Kører en shell-kommando og logger output."""
-    result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, text=True)
-    log_output = (
-        f"Executing: {command}\n"
-        f"Output:\n{result.stdout}\n"
-        f"Error:\n{result.stderr}\n"
-        "-------------------------------------\n"
-    )
-    with open("kalrun.log", "a") as log_file:
-        log_file.write(log_output)
-    return result.stdout
+    """
+    Kør en shell-kommando og returnér dens output.
+    """
+    try:
+        logging.info(f"Kører kommando: {command}")
+        result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=True)
+        if result.returncode != 0:
+            logging.error(f"Fejl under udførelse af kommando: {command}\n{result.stderr}")
+        return result.stdout
+    except Exception as e:
+        logging.error(f"Fejl under kørsel af kommando: {e}")
+        return ""
 
 def extract_channel_with_max_power(output):
-    """Finder kanalen med den højeste power fra output."""
-    pattern = r"chan:\s+(\d+).*?power:\s+([\d.]+)"
-    matches = re.findall(pattern, output)
-    if not matches:
-        raise ValueError("Ingen kanaler fundet i output.")
-    max_channel = max(matches, key=lambda x: float(x[1]))
-    return max_channel[0]
+    """
+    Udtræk kanalen med maksimal styrke fra kal output.
+    """
+    try:
+        pattern = r"chan:\s+(\d+)\s+\(.*?\)\s+power:\s+([\d.]+)"
+        matches = re.findall(pattern, output)
+        if matches:
+            max_channel = max(matches, key=lambda x: float(x[1]))
+            logging.info(f"Fundet kanal med maksimal styrke: {max_channel[0]}")
+            return max_channel[0]
+        else:
+            logging.error("Ingen kanaler fundet i output.")
+            return None
+    except Exception as e:
+        logging.error(f"Fejl under udtrækning af kanal med maksimal styrke: {e}")
+        return None
 
 def extract_absolute_error(output):
-    """Ekstraherer gennemsnitlig absolut fejl i ppm fra output med to decimaler."""
-    pattern = r"average absolute error:\s+([-\d.]+)\s*ppm"
-    match = re.search(pattern, output)
-    if not match:
-        raise ValueError("Kan ikke finde 'average absolute error' i output.")
-    return round(float(match.group(1)), 2)  # Bevar to decimaler
+    """
+    Udtræk absolut fejl i ppm fra kalibreringskommandoens output.
+    """
+    try:
+        pattern = r"average absolute error: ([\d.-]+) ppm"
+        match = re.search(pattern, output)
+        if match:
+            error_value = float(match.group(1))
+            logging.info(f"Fundet absolut fejl: {error_value:.2f} ppm")
+            return error_value
+        else:
+            logging.error("Ingen absolut fejl fundet i output.")
+            return None
+    except Exception as e:
+        logging.error(f"Fejl under udtrækning af absolut fejl: {e}")
+        return None
 
 def extract_average_hz(output):
-    """Ekstraherer gennemsnitsfrekvensfejl i Hz fra output."""
-    pattern = r"\+\s*([\d.]+)\s*(k?Hz)"
-    match = re.search(pattern, output)
-    if not match:
-        raise ValueError("Kan ikke finde 'average Hz' i output.")
-    value = float(match.group(1))
-    if match.group(2) == "kHz":  # Hvis værdien er i kHz, konverter til Hz
-        value *= 1000
-    return int(value)
-
-def log_message(message):
-    """Logger en besked til kalrun.log."""
-    with open("kalrun.log", "a") as log_file:
-        log_file.write(message + "\n")
+    """
+    Udtræk gennemsnitlig frekvensfejl i Hz fra kalibreringskommandoens output.
+    """
+    try:
+        pattern = r"average\s+([\d.-]+)\s+Hz"
+        match = re.search(pattern, output)
+        if match:
+            avg_hz = float(match.group(1))
+            logging.info(f"Fundet gennemsnitlig fejl: {avg_hz:.2f} Hz")
+            return avg_hz
+        else:
+            logging.error("Ingen gennemsnitlig fejl fundet i output.")
+            return None
+    except Exception as e:
+        logging.error(f"Fejl under udtrækning af gennemsnitlig fejl: {e}")
+        return None
 
 def main():
-    # Læs konfigurationen
-    cfg = configparser.ConfigParser()
-    cfg.read("config.txt")
-    
-    # Tjek om kalibrering er aktiveret
-    if cfg.getboolean("kal", "enable_calibration"):
-        logging.info("Kalibrering er aktiveret. Starter kalibreringsprocessen...")
-        # Resten af kalibreringsprocessen
-        try:
-            gain = get_gain_from_config()
-            gsmband = get_gsmband_from_config()
-            first_command = f"kal -s {gsmband} -e 0 -g {gain}"
-            output1 = run_command(first_command)
-            channel = extract_channel_with_max_power(output1)
-            second_command = f"kal -c {channel} -e 0 -g {gain}"
-            output2 = run_command(second_command)
-            error = extract_absolute_error(output2)
-            third_command = f"kal -c {channel} -e {error} -g {gain}"
-            output3 = run_command(third_command)
-            avg_hz = extract_average_hz(output3)
-            if avg_hz <= 750:
-                logging.info(f"Kalibrering succesfuld: Gennemsnitlig fejl {avg_hz} Hz.")
-                update_config_file(error)
-            else:
-                logging.warning(f"Kalibrering mislykkedes: Gennemsnitlig fejl {avg_hz} Hz.")
-        except Exception as e:
-            logging.error(f"Fejl under kalibrering: {e}")
+    """
+    Hovedprogrammet for kalibrering.
+    """
+    logging.info("Starter kalibreringsproces...")
+
+    config = configparser.ConfigParser()
+    config.read("config.txt")
+
+    # Kontroller om kalibrering er aktiveret
+    enable_calibration = get_config_value(config, "kal", "enable_calibration", "false").lower() == "true"
+    if not enable_calibration:
+        logging.info("Kalibrering er deaktiveret. Afslutter.")
+        return
+
+    gain = get_config_value(config, "rtl_fm", "gain", "42")
+    gsmband = get_config_value(config, "kal", "gsmband", "GSM900")
+
+    # Første kommando for scanning
+    command_scan = f"kal -s {gsmband} -e 0 -g {gain}"
+    scan_output = run_command(command_scan)
+
+    # Find kanal med maksimal styrke
+    channel = extract_channel_with_max_power(scan_output)
+    if not channel:
+        logging.error("Ingen kanal fundet. Afslutter kalibrering.")
+        return
+
+    # Anden kommando for initial kalibrering
+    command_calibrate = f"kal -c {channel} -e 0 -g {gain}"
+    calibrate_output = run_command(command_calibrate)
+
+    # Udtræk absolut fejl
+    absolute_error = extract_absolute_error(calibrate_output)
+    if absolute_error is None:
+        logging.error("Absolut fejl ikke fundet. Afslutter kalibrering.")
+        return
+
+    # Tredje kommando for endelig kalibrering med funden absolut fejl
+    command_final_calibrate = f"kal -c {channel} -e {absolute_error:.2f} -g {gain}"
+    final_output = run_command(command_final_calibrate)
+
+    # Udtræk gennemsnitlig fejl i Hz
+    avg_hz = extract_average_hz(final_output)
+    if avg_hz is None:
+        logging.error("Gennemsnitlig fejl ikke fundet. Afslutter kalibrering.")
+        return
+
+    # Tjek om gennemsnitlig fejl er acceptabel
+    if avg_hz <= 750:
+        logging.info(f"Kalibrering succesfuld med gennemsnitlig fejl: {avg_hz:.2f} Hz.")
+        update_config_value(config, "rtl_fm", "ppm_error", f"{absolute_error:.2f}")
     else:
-        logging.info("Kalibrering er deaktiveret. Springer over.")
+        logging.warning(f"Kalibrering mislykkedes. Gennemsnitlig fejl: {avg_hz:.2f} Hz overstiger 750 Hz.")
 
 if __name__ == "__main__":
     main()
