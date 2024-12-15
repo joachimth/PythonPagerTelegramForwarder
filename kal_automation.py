@@ -59,13 +59,13 @@ def extract_absolute_error(output):
 
 def extract_average_hz(output):
     """Ekstraherer gennemsnitsfrekvensfejl i Hz fra output."""
-    pattern = r"average\s+[^\n]*\+\s+([\d.]+)\s*k?Hz"
+    pattern = r"\+\s*([\d.]+)\s*(k?Hz)"
     match = re.search(pattern, output)
     if not match:
         raise ValueError("Kan ikke finde 'average Hz' i output.")
     value = float(match.group(1))
-    if "kHz" in match.string:
-        value *= 1000  # Konverter til Hz, hvis værdien er i kHz
+    if match.group(2) == "kHz":  # Hvis værdien er i kHz, konverter til Hz
+        value *= 1000
     return int(value)
 
 def log_message(message):
