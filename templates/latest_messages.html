@@ -13,13 +13,8 @@
             <div class="card-body">
                 <table class="table table-striped table-bordered">
                     <thead class="table-light">
-                        <tr>
-                            <th>Besked Nr</th>
-                            <th>Stednavn</th>
-                            <th>Adresse</th>
-                            <th>Postnr</th>
-                            <th>By</th>
-                            <th>Job Nr</th>
+                        <tr id="table-header">
+                            <!-- Dynamisk genereret tabelhoveder -->
                         </tr>
                     </thead>
                     <tbody id="message-table-body">
@@ -32,6 +27,16 @@
 
     <!-- JavaScript til dynamisk opdatering -->
     <script>
+        function generateTableHeaders(properties) {
+            const headerRow = document.getElementById('table-header');
+            headerRow.innerHTML = ""; // Rens eksisterende headers
+            properties.forEach(property => {
+                const th = document.createElement('th');
+                th.textContent = property;
+                headerRow.appendChild(th);
+            });
+        }
+
         function updateMessages() {
             fetch('/latest_messages_json')
                 .then(response => {
@@ -48,21 +53,22 @@
                         // Ingen beskeder fundet
                         const emptyRow = document.createElement('tr');
                         emptyRow.innerHTML = `
-                            <td colspan="6" class="text-center">Ingen beskeder fundet.</td>
+                            <td colspan="100%" class="text-center">Ingen beskeder fundet.</td>
                         `;
                         tableBody.appendChild(emptyRow);
                     } else {
+                        // Dynamisk genererede tabelhoveder baseret på egenskaber
+                        const properties = Object.keys(data.messages[0]);
+                        generateTableHeaders(properties);
+
                         // Tilføj beskeder til tabellen
                         data.messages.forEach(message => {
                             const row = document.createElement('tr');
-                            row.innerHTML = `
-                                <td>${message.besked?.nr || "N/A"}</td>
-                                <td>${message.stednavn || "N/A"}</td>
-                                <td>${message.adresse || "N/A"}</td>
-                                <td>${message.postnr || "N/A"}</td>
-                                <td>${message.by || "N/A"}</td>
-                                <td>${message.jobnr || "N/A"}</td>
-                            `;
+                            properties.forEach(property => {
+                                const cell = document.createElement('td');
+                                cell.textContent = message[property] || "N/A";
+                                row.appendChild(cell);
+                            });
                             tableBody.appendChild(row);
                         });
                     }
@@ -72,7 +78,7 @@
                     const tableBody = document.getElementById('message-table-body');
                     tableBody.innerHTML = `
                         <tr>
-                            <td colspan="6" class="text-center text-danger">
+                            <td colspan="100%" class="text-center text-danger">
                                 Fejl under hentning af beskeder: ${error.message}
                             </td>
                         </tr>
