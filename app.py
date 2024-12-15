@@ -5,7 +5,7 @@ import logging
 from logging.handlers import RotatingFileHandler
 from message_parser import parse_message_dynamic, format_message
 from telegram_sender import TelegramSender
-from message_receiver import fetch_latest_messages  # Import fra message_receiver
+from message_receiver import fetch_latest_messages
 
 # Logger opsætning
 def create_logger():
@@ -34,6 +34,8 @@ def process_and_send_messages():
             logger.info("Ingen nye beskeder modtaget.")
             return
 
+        telegram_sender = TelegramSender()
+
         for raw_message in messages:
             try:
                 logger.info(f"Modtaget besked: {raw_message}")
@@ -43,13 +45,7 @@ def process_and_send_messages():
                 formatted_message = format_message(parsed_message)
 
                 # Send besked til Telegram
-                #chat_id = os.getenv('TELEGRAM_REC')
-                # Initialiser TelegramSender
-                telegram_sender = TelegramSender()
-                # Brug send_message til at sende en besked
                 telegram_sender.send_message(formatted_message)
-
-                #send_message_to_telegram(formatted_message)
                 logger.info(f"Besked sendt til Telegram: {formatted_message}")
 
             except Exception as e:
