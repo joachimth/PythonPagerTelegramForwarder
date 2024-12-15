@@ -4,8 +4,8 @@ import time
 import logging
 from logging.handlers import RotatingFileHandler
 from message_parser import parse_message_dynamic, format_message
-from telegram_sender import TelegramSender
 from message_receiver import fetch_latest_messages
+from telegram_sender import TelegramSender
 
 # Logger opsætning
 def create_logger():
@@ -24,12 +24,10 @@ logger = create_logger()
 
 def process_and_send_messages():
     """
-    Henter de seneste beskeder fra `message_receiver` og sender dem til Telegram.
+    Henter de seneste rå beskeder, parser dem og sender dem til Telegram.
     """
     try:
-        # Hent seneste beskeder
         messages = fetch_latest_messages()
-
         if not messages:
             logger.info("Ingen nye beskeder modtaget.")
             return
@@ -38,7 +36,7 @@ def process_and_send_messages():
 
         for raw_message in messages:
             try:
-                logger.info(f"Modtaget besked: {raw_message}")
+                logger.info(f"Modtaget rå besked: {raw_message}")
                 
                 # Parse besked
                 parsed_message = parse_message_dynamic(raw_message)
