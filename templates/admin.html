@@ -27,9 +27,25 @@
                         <div class="card-body">
                             {% for key, value in values.items() %}
                             <div class="mb-3">
+                                {% if section == "kal" and key == "enable_calibration" %}
+                                <!-- Checkbox for Calibration -->
+                                <div class="form-check">
+                                    <input 
+                                        class="form-check-input" 
+                                        type="checkbox" 
+                                        id="{{ section }}_{{ key }}" 
+                                        name="{{ section }}_{{ key }}" 
+                                        {% if value == "true" %}checked{% endif %}>
+                                    <label class="form-check-label" for="{{ section }}_{{ key }}">
+                                        Enable Calibration
+                                    </label>
+                                </div>
+                                {% else %}
+                                <!-- Standard Input Field -->
                                 <label for="{{ section }}_{{ key }}" class="form-label">{{ key }}</label>
                                 <input type="text" class="form-control" id="{{ section }}_{{ key }}"
                                     name="{{ section }}_{{ key }}" value="{{ value }}">
+                                {% endif %}
                             </div>
                             {% endfor %}
                         </div>
@@ -60,14 +76,14 @@
                             <h5>{{ log }}</h5>
                         </div>
                         <div class="card-body">
-                            <a href="/view_log/{{ log }}">View {{ log }}</a> | <a href="/clear_log/{{ log }}">Clear {{ log }}</a>
+                            <a href="/view_log/{{ log }}" class="btn btn-link">View {{ log }}</a> | 
+                            <a href="/clear_log/{{ log }}" class="btn btn-link">Clear {{ log }}</a>
                         </div>
                     </div>
                 </div>
                 {% endfor %}
             </div>
         </div>
-
 
         <!-- Latest Messages -->
         <div class="mt-4">
@@ -81,7 +97,7 @@
             </div>
         </div>
 
-        <!-- edit_message_parsing Messages -->
+        <!-- Edit Message Parsing -->
         <div class="mt-4">
             <div class="card">
                 <div class="card-header">
