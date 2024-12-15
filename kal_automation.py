@@ -87,76 +87,76 @@ def extract_absolute_error(output):
 
 def extract_average_hz(output):
     """
-    Udtræk gennemsnitlig frekvensfejl i Hz fra kalibreringskommandoens output.
+    Ekstraherer gennemsnitlig fejl (Hz) fra output.
     """
+    logging.info(f"Analyserer output:\n{output}")
     try:
-        pattern = r"average\s+([\d.-]+)\s+Hz"
-        match = re.search(pattern, output)
-        if match:
-            avg_hz = float(match.group(1))
-            logging.info(f"Fundet gennemsnitlig fejl: {avg_hz:.2f} Hz")
-            return avg_hz
-        else:
-            logging.error("Ingen gennemsnitlig fejl fundet i output.")
-            return None
+        lines = output.split('\n')
+        for i, line in enumerate(lines):
+            if "average" in line.lower():
+                # Forventer, at næste linje indeholder Hz-værdien
+                try:
+                    hz_line = lines[i + 1].strip()
+                    logging.info(f"Fundet linje med Hz: {hz_line}")
+                    hz_value = re.search(r"([\d.-]+)\s*(k?Hz)", hz_line)
+                    if hz_value:
+                        value, unit = hz_value.groups()
+                        value = float(value)
+                        if unit == "kHz":
+                            value *= 1000  # Konverter kHz til Hz
+                        return int(value)
+                except IndexError:
+                    logging.error("Ingen linje efter 'average' i output.")
     except Exception as e:
-        logging.error(f"Fejl under udtrækning af gennemsnitlig fejl: {e}")
-        return None
+        logging.error(f"Fejl under parsing af gennemsnitlig fejl: {e}", exc_info=True)
+
+    logging.error("Ingen gennemsnitlig fejl fundet i output.")
+    return None
 
 def main():
     """
-    Hovedprogrammet for kalibrering.
+    Hovedfunktionen for kalibrering.
     """
-    logging.info("Starter kalibreringsproces...")
+    try:
+        logging.info("Starter kalibreringsproces...")
 
-    config = configparser.ConfigParser()
-    config.read("config.txt")
+        # Kør første kommando for at finde kanal med maksimal signalstyrke
+        first_command = f"kal -s {gsmband} -e 0 -g {gain}"
+        output1 = run_command(first_command)
+        channel = extract_channel_with_max_power(output1)
+        if not channel:
+            logging.error("Kunne ikke finde kanal med maksimal signalstyrke.")
+            return
 
-    # Kontroller om kalibrering er aktiveret
-    enable_calibration = get_config_value(config, "kal", "enable_calibration", "false").lower() == "true"
-    if not enable_calibration:
-        logging.info("Kalibrering er deaktiveret. Afslutter.")
-        return
+        logging.info(f"Fundet kanal med maksimal styrke: {channel}")
 
-    gain = get_config_value(config, "rtl_fm", "gain", "42")
-    gsmband = get_config_value(config, "kal", "gsmband", "GSM900")
+        # Kør anden kommando for at finde absolut fejl
+        second_command = f"kal -c {channel} -e 0 -g {gain}"
+        output2 = run_command(second_command)
+        absolute_error = extract_absolute_error(output2)
+        if absolute_error is None:
+            logging.error("Kunne ikke finde absolut fejl.")
+            return
 
-    # Første kommando for scanning
-    command_scan = f"kal -s {gsmband} -e 0 -g {gain}"
-    scan_output = run_command(command_scan)
+        logging.info(f"Fundet absolut fejl: {absolute_error} ppm")
 
-    # Find kanal med maksimal styrke
-    channel = extract_channel_with_max_power(scan_output)
-    if not channel:
-        logging.error("Ingen kanal fundet. Afslutter kalibrering.")
-        return
+        # Kør tredje kommando med den fundne fejl for at finde gennemsnitlig fejl
+        third_command = f"kal -c {channel} -e {absolute_error:.2f} -g {gain}"
+        output3 = run_command(third_command)
+        average_hz = extract_average_hz(output3)
+        if average_hz is None:
+            logging.error("Ingen gennemsnitlig fejl fundet. Afslutter kalibrering.")
+            return
 
-    # Anden kommando for initial kalibrering
-    command_calibrate = f"kal -c {channel} -e 0 -g {gain}"
-    calibrate_output = run_command(command_calibrate)
+        # Valider gennemsnitlig fejl
+        if average_hz <= 750:
+            logging.info(f"Kalibrering succesfuld! Gennemsnitlig fejl: {average_hz} Hz")
+            update_config_file(absolute_error)
+        else:
+            logging.warning(f"Gennemsnitlig fejl {average_hz} Hz overskrider grænsen på 750 Hz. Kalibrering mislykkedes.")
 
-    # Udtræk absolut fejl
-    absolute_error = extract_absolute_error(calibrate_output)
-    if absolute_error is None:
-        logging.error("Absolut fejl ikke fundet. Afslutter kalibrering.")
-        return
-
-    # Tredje kommando for endelig kalibrering med funden absolut fejl
-    command_final_calibrate = f"kal -c {channel} -e {absolute_error:.2f} -g {gain}"
-    final_output = run_command(command_final_calibrate)
-
-    # Udtræk gennemsnitlig fejl i Hz
-    avg_hz = extract_average_hz(final_output)
-    if avg_hz is None:
-        logging.error("Gennemsnitlig fejl ikke fundet. Afslutter kalibrering.")
-        return
-
-    # Tjek om gennemsnitlig fejl er acceptabel
-    if avg_hz <= 750:
-        logging.info(f"Kalibrering succesfuld med gennemsnitlig fejl: {avg_hz:.2f} Hz.")
-        update_config_value(config, "rtl_fm", "ppm_error", f"{absolute_error:.2f}")
-    else:
-        logging.warning(f"Kalibrering mislykkedes. Gennemsnitlig fejl: {avg_hz:.2f} Hz overstiger 750 Hz.")
-
+    except Exception as e:
+        logging.error(f"Uventet fejl under kalibrering: {e}", exc_info=True)
+    
 if __name__ == "__main__":
     main()
