@@ -1,9 +1,20 @@
 import re
 import logging
 from configparser import ConfigParser
+import os
 
-# Opsætning af logging
-logging.basicConfig(filename="messages.log", level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+# Sikring af logfilen
+LOG_FILE = "messages.log"
+if not os.path.exists(LOG_FILE):
+    with open(LOG_FILE, "w") as log_file:
+        log_file.write("Log oprettet.\n")
+
+# Opsætning af logging med INFO som standardniveau
+logging.basicConfig(
+    filename=LOG_FILE,
+    level=logging.INFO,  # Logniveau hævet til INFO
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
 # Global dictionary til gemte beskeder
 messages_dict = {}
