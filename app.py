@@ -46,9 +46,10 @@ def process_and_send_messages():
                 #chat_id = os.getenv('TELEGRAM_REC')
                 # Initialiser TelegramSender
                 telegram_sender = TelegramSender()
+                # Brug send_message til at sende en besked
+                telegram_sender.send_message(formatted_message)
 
-
-                send_message_to_telegram(formatted_message)
+                #send_message_to_telegram(formatted_message)
                 logger.info(f"Besked sendt til Telegram: {formatted_message}")
 
             except Exception as e:
