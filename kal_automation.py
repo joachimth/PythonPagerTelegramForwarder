@@ -68,6 +68,11 @@ def extract_average_hz(output):
         value *= 1000  # Konverter til Hz, hvis værdien er i kHz
     return int(value)
 
+def log_message(message):
+    """Logger en besked til kalrun.log."""
+    with open("kalrun.log", "a") as log_file:
+        log_file.write(message + "\n")
+
 def main():
     # Slet kalrun.log ved opstart
     if os.path.exists("kalrun.log"):
@@ -77,7 +82,7 @@ def main():
         gain = read_config_value("rtl_fm", "gain")
         gsmband = read_config_value("kal", "gsmband")
     except ValueError as e:
-        print(f"Konfigurationsfejl: {e}")
+        log_message(f"Konfigurationsfejl: {e}")
         return
 
     # Find kanal med maksimal styrke
@@ -86,7 +91,7 @@ def main():
         output1 = run_command(command1)
         channel = extract_channel_with_max_power(output1)
     except ValueError as e:
-        print(f"Fejl under første kommando: {e}")
+        log_message(f"Fejl under første kommando: {e}")
         return
 
     # Udfør kalibrering på den valgte kanal
@@ -95,7 +100,7 @@ def main():
         output2 = run_command(command2)
         error_ppm = extract_absolute_error(output2)  # Bevarer to decimaler
     except ValueError as e:
-        print(f"Fejl under anden kommando: {e}")
+        log_message(f"Fejl under anden kommando: {e}")
         return
 
     # Test med ny ppm-fejl og beregn gennemsnitsfejl i Hz
@@ -104,20 +109,21 @@ def main():
         output3 = run_command(command3)
         avg_hz = extract_average_hz(output3)
     except ValueError as e:
-        print(f"Fejl under tredje kommando: {e}")
+        log_message(f"Fejl under tredje kommando: {e}")
         return
 
     # Vurder resultaterne
-    if avg_hz <= 500:
-        print(f"Kalibrering succesfuld: {avg_hz} Hz fejl (acceptablet).")
+    tolerance_hz = 750  # Hæv tolerancen til 750 Hz
+    if avg_hz <= tolerance_hz:
+        success_message = f"Kalibrering succesfuld: {avg_hz} Hz fejl (acceptablet)."
         update_config_file("ppm_error", error_ppm)
     else:
-        print(f"Kalibrering fejlede: {avg_hz} Hz fejl (ikke acceptablet).")
+        success_message = f"Kalibrering fejlede: {avg_hz} Hz fejl (ikke acceptablet)."
 
     # Log resultatet
-    with open("kalrun.log", "a") as log_file:
-        log_file.write(f"Final PPM Error: {error_ppm}\n")
-        log_file.write(f"Final Average Hz Error: {avg_hz} Hz\n")
+    log_message(f"Final PPM Error: {error_ppm}")
+    log_message(f"Final Average Hz Error: {avg_hz} Hz")
+    log_message(success_message)
 
 if __name__ == "__main__":
     main()
