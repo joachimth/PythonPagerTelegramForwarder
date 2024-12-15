@@ -29,7 +29,7 @@ def process_and_send_messages():
     try:
         messages = fetch_latest_messages()
         if not messages:
-            logger.info("Ingen nye beskeder modtaget.")
+            #logger.info("Ingen nye beskeder modtaget.")
             return
 
         telegram_sender = TelegramSender()
