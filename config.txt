@@ -1,54 +1,66 @@
 [Flask]
+# Port for Flask-applikationen
 port = 5000
 
 [Frequencies]
-freq = 171.300M
+# Frekvens til RTL-SDR
+freq = "171.300M"
 
 [rtl_fm]
+# RTL-SDR-indstillinger
 device_index = 0
 sample_rate = 22050
-enable_option = -E dc
+enable_option = "-E dc"
 gain = 42
-ppm_error = 32
+ppm_error = 5.7
 squelch_level = 0
 
 [multimon-ng]
-input_file = /dev/stdin
-pocsag_charset = DK
-prot = POCSAG512 POCSAG1200 POCSAG2400
+# Indstillinger for multimon-ng
+input_file = "/dev/stdin"
+pocsag_charset = "DK"
+prot = "POCSAG512, POCSAG1200, POCSAG2400"
 min_len = 1
 
 [kal]
-gsmband = GSM900
+# Indstillinger for kalibrering
+gsmband = "GSM900"
 
 [Encoding]
-encoding_format = utf-8
-dk_format_not_in_use = iso-8859-1
+# Encoding indstillinger
+encoding_format = "utf-8"
+dk_format_not_in_use = "iso-8859-1"
 
 [MessageParsing]
-alarmtype_kritisk = (K)M
-alarmtype_seriøs = (S)M+V
-alarmtype_lavrisiko = (L)M+V
-alarmtype_højrisiko = (A)M+V+P
+# Alarmtyper
+alarmtype_kritisk = "(K)M"
+alarmtype_seriøs = "(S)M+V"
+alarmtype_lavrisiko = "(L)M+V"
+alarmtype_højrisiko = "(A)M+V+P"
 
-alarmkald_politi = P, Politiet
-alarmkald_brand = ABA
-alarmkald_isl = ISL
-alarmkald_medicin = (A)M, (L)M
-alarmkald_vagt = V
-alarmkald_specialrespons = SPR + VTVG
+# Alarmkald
+alarmkald_politi = "P, Politiet"
+alarmkald_brand = "ABA"
+alarmkald_isl = "ISL"
+alarmkald_medicin = "(A)M, (L)M"
+alarmkald_vagt = "V"
+alarmkald_specialrespons = "SPR + VTVG"
 
-bygningstype_rækkehus = Villa, Rækkehus
-bygningstype_erhverv = Erhverv, ApS, A/S
+# Bygningstyper
+bygningstype_rækkehus = "Villa, Rækkehus"
+bygningstype_erhverv = "Erhverv, ApS, A/S"
 
-biltype_a_sprøjte = A-sprøjte
-biltype_b_sprøjte = B-sprøjte
-biltype_tankvogn = Tankvogn
-biltype_stige = Stige
-biltype_vtvg = VTVG
+# Biltyper
+biltype_a_sprøjte = "A-sprøjte"
+biltype_b_sprøjte = "B-sprøjte"
+biltype_tankvogn = "Tankvogn"
+biltype_stige = "Stige"
+biltype_vtvg = "VTVG"
 
-specifik_brandalarm = ABA
-specifik_gasledningsbrud = Gas-Ledningsbrud, ej antændt
-specifik_bygningsbrand = Bygn.brand-Villa/Rækkehus
+# Specifikke hændelser
+specifik_brandalarm = "ABA"
+specifik_gasledningsbrud = "Gas-Ledningsbrud, ej antændt"
+specifik_bygningsbrand = "Bygn.brand-Villa/Rækkehus"
 
-positioneringsdata = ?RSE_1/1
+# Positioneringsdata
+positioneringsdata = "?RSE_1/1"
