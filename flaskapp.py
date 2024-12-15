@@ -39,20 +39,27 @@ def home():
 @app.route('/admin', methods=['GET', 'POST'])
 @login_required
 def admin():
+    # Load data from config.txt
     local_config = configparser.ConfigParser()
     local_config.read('config.txt')
 
     if request.method == 'POST':
+        # Handle form submission to update config.txt here
         for section in local_config.sections():
             for key in local_config[section]:
-                local_config[section][key] = request.form[f'{section}_{key}']
+                if key == "enable_calibration":
+                    # Behandl som en boolsk værdi
+                    local_config[section][key] = "true" if f"{section}_{key}" in request.form else "false"
+                else:
+                    local_config[section][key] = request.form[f'{section}_{key}']
         with open('config.txt', 'w') as config_file:
             local_config.write(config_file)
         flash('Configuration saved successfully!')
-
-    log_files = [log for log in glob.glob('**/*.log*', recursive=True) if os.path.getsize(log) > 0]
-
-    return render_template('admin.html', config=config, log_files=log_files)
+    
+    # Henter alle .log filer
+    log_files = [log for log in glob.glob('**/*.log', recursive=True) if os.path.getsize(log) > 0]
+    
+    return render_template('admin.html', config=local_config, log_files=log_files)
 
 @app.route('/latest_messages', methods=['GET'])
 @login_required
