@@ -2,20 +2,19 @@ from flask import Flask, render_template, request, redirect, url_for, flash, jso
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user
 import configparser
 import os
-import glob
+import sqlite3
 import logging
 
 # Logger opsætning
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("flaskapp_logger")
 
-# Besked-dictionary
-messages_dict = {}
-
 # Indlæs konfiguration
 config = configparser.ConfigParser()
 config.read('config.txt')
 flask_port = int(config['Flask']['port'])
+
+DB_PATH = "messages.db"
 
 # Flask setup
 app = Flask(__name__)
@@ -86,25 +85,40 @@ def admin():
 @app.route('/latest_messages', methods=['GET'])
 @login_required
 def latest_messages():
-    global messages_dict
-    if not messages_dict:
-        flash("Ingen beskeder fundet!", "info")
+    try:
+        with sqlite3.connect(DB_PATH) as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT id, timestamp, raw_message, parsed_fields
+                FROM messages
+                ORDER BY id DESC
+                LIMIT 10
+            """)
+            messages = cursor.fetchall()
+
+        if not messages:
+            flash("Ingen beskeder fundet!", "info")
+        return render_template('latest_messages.html', messages=messages)
+    except Exception as e:
+        logger.error(f"Error fetching messages: {e}")
+        flash("Fejl under hentning af beskeder!", "danger")
         return render_template('latest_messages.html', messages=[])
-    sorted_messages = sorted(messages_dict.values(), key=lambda x: x.get('besked.nr', 0), reverse=True)
-    latest_ten = sorted_messages[:10]
-    return render_template('latest_messages.html', messages=latest_ten)
 
 @app.route('/latest_messages_json', methods=['GET'])
 @login_required
 def latest_messages_json():
-    global messages_dict
-    if not messages_dict:
-        return jsonify({"messages": []})
-
     try:
-        sorted_messages = sorted(messages_dict.values(), key=lambda x: x.get('besked.nr', 0), reverse=True)
-        latest_ten = sorted_messages[:10]
-        return jsonify({"messages": latest_ten})
+        with sqlite3.connect(DB_PATH) as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT id, timestamp, raw_message, parsed_fields
+                FROM messages
+                ORDER BY id DESC
+                LIMIT 10
+            """)
+            messages = cursor.fetchall()
+
+        return jsonify({"messages": messages})
     except Exception as e:
         logger.error(f"Error fetching messages: {e}")
         return jsonify({"error": "Kunne ikke hente beskeder. Prøv igen senere."}), 500
@@ -112,30 +126,23 @@ def latest_messages_json():
 @app.route('/edit_message_parsing', methods=['GET', 'POST'])
 @login_required
 def edit_message_parsing():
-    """
-    Side til redigering af MessageParsing-sektionen i config.txt.
-    """
     if request.method == 'POST':
         try:
             if 'new_key' in request.form and 'new_value' in request.form:
                 new_key = request.form['new_key']
                 new_value = request.form['new_value']
 
-                # Tjek om sektionen findes, ellers opret den
                 if 'MessageParsing' not in config.sections():
                     config.add_section('MessageParsing')
 
-                # Tilføj ny nøgle og værdi
                 config.set('MessageParsing', new_key, new_value)
 
-            # Opdater eksisterende nøgler
             for key, value in request.form.items():
                 if key.startswith('key_'):
                     original_key = key.split('key_', 1)[1]
                     updated_value = request.form[f'value_{original_key}']
                     config.set('MessageParsing', original_key, updated_value)
 
-            # Gem ændringer i config.txt
             with open('config.txt', 'w') as configfile:
                 config.write(configfile)
 
@@ -144,7 +151,6 @@ def edit_message_parsing():
             logger.error(f"Error updating MessageParsing: {e}")
             flash("Failed to update MessageParsing settings!", "danger")
 
-    # Indlæs eksisterende nøgler og værdier fra MessageParsing
     message_parsing = config.items('MessageParsing') if 'MessageParsing' in config.sections() else []
     return render_template('edit_message_parsing.html', message_parsing=message_parsing)
 
