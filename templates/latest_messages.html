@@ -1,26 +1,25 @@
 {% include 'header.html' %}
-        <!-- Titel -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h1 class="text-center">Seneste Beskeder</h1>
-            </div>
+    <!-- Titel -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h1 class="text-center">Seneste Beskeder</h1>
         </div>
+    </div>
 
-        <!-- Tabel -->
-        <div class="card">
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-striped table-bordered">
-                        <thead class="table-light">
-                            <tr id="table-header">
-                                <!-- Dynamisk genereret tabelhoveder -->
-                            </tr>
-                        </thead>
-                        <tbody id="message-table-body">
-                            <!-- Dynamisk opdateret med JavaScript -->
-                        </tbody>
-                    </table>
-                </div>
+    <!-- Tabel -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-bordered">
+                    <thead class="table-light">
+                        <tr id="table-header">
+                            <!-- Dynamisk genereret tabelhoveder -->
+                        </tr>
+                    </thead>
+                    <tbody id="message-table-body">
+                        <!-- Dynamisk opdateret med JavaScript -->
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -90,4 +89,5 @@
         // Opdater tabellen hver 5. sekund
         setInterval(updateMessages, 5000);
         window.onload = updateMessages;
+    </script>
 {% include 'footer.html' %}
