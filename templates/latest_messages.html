@@ -11,16 +11,18 @@
         <!-- Tabel -->
         <div class="card">
             <div class="card-body">
-                <table class="table table-striped table-bordered">
-                    <thead class="table-light">
-                        <tr id="table-header">
-                            <!-- Dynamisk genereret tabelhoveder -->
-                        </tr>
-                    </thead>
-                    <tbody id="message-table-body">
-                        <!-- Dynamisk opdateret med JavaScript -->
-                    </tbody>
-                </table>
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered">
+                        <thead class="table-light">
+                            <tr id="table-header">
+                                <!-- Dynamisk genereret tabelhoveder -->
+                            </tr>
+                        </thead>
+                        <tbody id="message-table-body">
+                            <!-- Dynamisk opdateret med JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -32,7 +34,7 @@
             headerRow.innerHTML = ""; // Rens eksisterende headers
             properties.forEach(property => {
                 const th = document.createElement('th');
-                th.textContent = property;
+                th.textContent = property.charAt(0).toUpperCase() + property.slice(1); // Formatér tekst
                 headerRow.appendChild(th);
             });
         }
@@ -56,22 +58,23 @@
                             <td colspan="100%" class="text-center">Ingen beskeder fundet.</td>
                         `;
                         tableBody.appendChild(emptyRow);
-                    } else {
-                        // Dynamisk genererede tabelhoveder baseret på egenskaber
-                        const properties = Object.keys(data.messages[0]);
-                        generateTableHeaders(properties);
-
-                        // Tilføj beskeder til tabellen
-                        data.messages.forEach(message => {
-                            const row = document.createElement('tr');
-                            properties.forEach(property => {
-                                const cell = document.createElement('td');
-                                cell.textContent = message[property] || "N/A";
-                                row.appendChild(cell);
-                            });
-                            tableBody.appendChild(row);
-                        });
+                        return;
                     }
+
+                    // Dynamisk genererede tabelhoveder baseret på egenskaber
+                    const properties = Object.keys(data.messages[0]);
+                    generateTableHeaders(properties);
+
+                    // Tilføj beskeder til tabellen
+                    data.messages.forEach(message => {
+                        const row = document.createElement('tr');
+                        properties.forEach(property => {
+                            const cell = document.createElement('td');
+                            cell.textContent = message[property] || "N/A";
+                            row.appendChild(cell);
+                        });
+                        tableBody.appendChild(row);
+                    });
                 })
                 .catch(error => {
                     console.error('Error fetching messages:', error);
