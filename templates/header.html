@@ -23,7 +23,7 @@
         }
 
         #logo {
-            height: 50px;
+            height: 50px; /* Juster logoets højde */
         }
 
         .header {
@@ -40,14 +40,17 @@
             font-weight: bold;
         }
 
-        footer {
-            background-color: var(--footer-bg, #f8f9fa);
-            color: var(--footer-text, #212529);
+        .dark-mode .dark-card {
+            background-color: #343a40;
+            color: #f8f9fa;
         }
 
-        body.dark-mode footer {
-            --footer-bg: #212529;
-            --footer-text: #f8f9fa;
+        .dark-mode .btn-link {
+            color: #f8f9fa;
+        }
+
+        .dark-mode .btn-link:hover {
+            color: #adb5bd;
         }
     </style>
 </head>
