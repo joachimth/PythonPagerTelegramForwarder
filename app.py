@@ -1,45 +1,48 @@
-import os
-import sys
-import time
+import sqlite3
 import logging
-from logging.handlers import RotatingFileHandler
-from message_parser import parse_message_dynamic, format_message, load_config, insert_example_messages
-from message_receiver import fetch_latest_messages
+import json
+from message_parser import parse_message_dynamic, format_message
 from telegram_sender import TelegramSender
 
 # Logger opsætning
-def create_logger():
-    """
-    Opretter en logger til applikationen.
-    """
-    logger = logging.getLogger('app_logger')
-    handler = RotatingFileHandler('app.log', maxBytes=10 * 1024 * 1024, backupCount=5)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
-    logger.setLevel(logging.INFO)
-    return logger
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logger = logging.getLogger("app")
 
-logger = create_logger()
+DB_PATH = "messages.db"
+
+def fetch_messages_from_db(limit=10):
+    """
+    Henter de seneste beskeder fra databasen.
+    """
+    with sqlite3.connect(DB_PATH) as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT raw_message, timestamp, parsed_fields
+            FROM messages
+            ORDER BY id DESC
+            LIMIT ?
+        """, (limit,))
+        rows = cursor.fetchall()
+    return rows
 
 def process_and_send_messages():
     """
-    Henter de seneste rå beskeder, parser dem og sender dem til Telegram.
+    Henter beskeder fra databasen, parser dem og sender dem til Telegram.
     """
     try:
-        messages = fetch_latest_messages()
+        messages = fetch_messages_from_db()
         if not messages:
-            #logger.info("Ingen nye beskeder modtaget.")
+            logger.info("Ingen nye beskeder modtaget.")
             return
 
         telegram_sender = TelegramSender()
 
-        for raw_message in messages:
+        for raw_message, timestamp, parsed_fields in messages:
             try:
-                logger.info(f"Modtaget rå besked: {raw_message}")
+                logger.info(f"Modtaget rå besked: {raw_message} på tidspunkt {timestamp}")
                 
-                # Parse besked
-                parsed_message = parse_message_dynamic(raw_message)
+                # Hvis parsed_fields ikke er tom, brug det
+                parsed_message = json.loads(parsed_fields) if parsed_fields else parse_message_dynamic(raw_message)
                 formatted_message = format_message(parsed_message)
 
                 # Send besked til Telegram
@@ -47,33 +50,16 @@ def process_and_send_messages():
                 logger.info(f"Besked sendt til Telegram: {formatted_message}")
 
             except Exception as e:
-                logger.error(f"Fejl under behandling af besked: {e}, Line: {sys.exc_info()[-1].tb_lineno}")
+                logger.error(f"Fejl under behandling af besked: {e}")
 
     except Exception as e:
-        logger.error(f"Fejl under hentning af beskeder: {e}, Line: {sys.exc_info()[-1].tb_lineno}")
+        logger.error(f"Fejl under hentning af beskeder: {e}")
 
-"""
-Hovedprogram til at hente beskeder og sende dem til Telegram.
-"""
-def main():
-    logger.info("Indlæser test eksempler, app.py")
-    # Indlæs konfiguration
-    cfg = load_config()
-    
-    # Tilføj eksempelbeskeder
-    insert_example_messages(cfg)
-    
+if __name__ == "__main__":
     logger.info("Starter app.py")
     try:
-        while True:
-            process_and_send_messages()
-            time.sleep(5)  # Polling interval
+        process_and_send_messages()
     except KeyboardInterrupt:
         logger.info("App afsluttes af bruger.")
     except Exception as e:
-        logger.error(f"Kritisk fejl i app.py: {e}, Line: {sys.exc_info()[-1].tb_lineno}")
-
-
-if __name__ == "__main__":
-    main()
-    
+        logger.error(f"Kritisk fejl i app.py: {e}")
