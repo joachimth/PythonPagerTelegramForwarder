@@ -1,48 +1,13 @@
+import sqlite3
 import subprocess
 import collections
 import logging
 import configparser
-import sqlite3
-import json
-from datetime import datetime
+from message_parser import parse_message_dynamic
 
 # Logger opsætning
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("message_receiver")
-
-DB_PATH = "messages.db"
-
-def setup_database():
-    """
-    Opretter SQLite-databasen, hvis den ikke allerede eksisterer.
-    """
-    with sqlite3.connect(DB_PATH) as conn:
-        cursor = conn.cursor()
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS messages (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                raw_message TEXT,
-                timestamp TEXT,
-                parsed_fields TEXT
-            )
-        """)
-        conn.commit()
-
-def save_message_to_db(raw_message, parsed_fields):
-    """
-    Gemmer en besked i databasen.
-    """
-    timestamp = datetime.now().isoformat()
-    with sqlite3.connect(DB_PATH) as conn:
-        cursor = conn.cursor()
-        cursor.execute("""
-            INSERT INTO messages (raw_message, timestamp, parsed_fields)
-            VALUES (?, ?, ?)
-        """, (raw_message, timestamp, json.dumps(parsed_fields)))
-        
-        # Begræns databasen til 1000 beskeder
-        cursor.execute("DELETE FROM messages WHERE id NOT IN (SELECT id FROM messages ORDER BY id DESC LIMIT 1000)")
-        conn.commit()
 
 def load_config(filepath='config.txt'):
     """
@@ -52,14 +17,45 @@ def load_config(filepath='config.txt'):
     cfg.read(filepath)
     return cfg
 
+def save_message_to_db(raw_message, parsed_message, db_path='messages.db'):
+    """
+    Gemmer både rå og dekodede beskeder i SQLite-databasen.
+    """
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    
+    cursor.execute("""
+    INSERT INTO messages (
+        raw_message, stednavn, adresse, postnr, by, lat, long, linktilgooglemaps,
+        alarmtype_kritisk, alarmtype_seriøs, alarmtype_lavrisiko, alarmtype_højrisiko,
+        alarmkald_politi, alarmkald_brand, alarmkald_isl, alarmkald_medicin,
+        alarmkald_vagt, alarmkald_specialrespons, specifik_brandalarm,
+        specifik_gasledningsbrud, specifik_bygningsbrand
+    ) VALUES (
+        :raw_message, :stednavn, :adresse, :postnr, :by, :lat, :long, :linktilgooglemaps,
+        :alarmtype_kritisk, :alarmtype_seriøs, :alarmtype_lavrisiko, :alarmtype_højrisiko,
+        :alarmkald_politi, :alarmkald_brand, :alarmkald_isl, :alarmkald_medicin,
+        :alarmkald_vagt, :alarmkald_specialrespons, :specifik_brandalarm,
+        :specifik_gasledningsbrud, :specifik_bygningsbrand
+    )
+    """, {
+        'raw_message': raw_message,
+        **parsed_message
+    })
+    
+    conn.commit()
+    conn.close()
+
 def start_message_receiver(cfg):
     """
-    Starter beskedmodtagerprocessen og gemmer rå beskeder i SQLite-databasen.
+    Starter beskedmodtagerprocessen og håndterer beskeder fra multimon-ng.
     """
     prots = cfg.get('multimon-ng', 'prot').split()
     prots = ' -a '.join(prots)
     if prots:
         prots = '-a ' + prots
+
+    recent_messages = collections.deque(maxlen=100)
 
     command = (
         "rtl_fm {} -d {} -l {} -g {} -p {} -f {} -s {} | multimon-ng -C {} -t raw {} -f alpha /dev/stdin -"
@@ -77,7 +73,9 @@ def start_message_receiver(cfg):
     )
 
     logger.info(f"Command executed: {command}")
+
     process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    decode_format = cfg.get('Encoding', 'encoding_format')
 
     try:
         while True:
@@ -89,11 +87,17 @@ def start_message_receiver(cfg):
             if "Alpha" not in output:
                 continue
 
-            output = output.replace("<NUL>", "").strip()
+            raw_message = output.replace("<NUL>", "").strip()
+            if raw_message in recent_messages:
+                continue
 
-            # Gem beskeden i databasen
-            parsed_fields = {}  # Dummy data for nu
-            save_message_to_db(output, parsed_fields)
+            recent_messages.append(raw_message)
+
+            # Dekod beskeden
+            parsed_message = parse_message_dynamic(raw_message, cfg)
+
+            # Gem både rå og dekodede beskeder i databasen
+            save_message_to_db(raw_message, parsed_message)
 
     except Exception as e:
         logger.error(f"Error in message processing: {e}")
@@ -104,7 +108,6 @@ def start_message_receiver(cfg):
 
 if __name__ == "__main__":
     try:
-        setup_database()
         cfg = load_config()
         start_message_receiver(cfg)
     except Exception as e:
