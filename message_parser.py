@@ -2,6 +2,7 @@ import re
 import logging
 from configparser import ConfigParser
 import os
+import sqlite3
 
 # Sikring af logfilen
 LOG_FILE = "messages.log"
@@ -12,12 +13,9 @@ if not os.path.exists(LOG_FILE):
 # Opsætning af logging med INFO som standardniveau
 logging.basicConfig(
     filename=LOG_FILE,
-    level=logging.INFO,  # Logniveau hævet til INFO
+    level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
-
-# Global dictionary til gemte beskeder
-messages_dict = {}
 
 def extract_field(pattern, text, default=None):
     """
@@ -46,18 +44,28 @@ def parse_message_dynamic(message, cfg):
     """
     Parser en besked dynamisk baseret på regler og mønstre i config.txt.
     """
-    parsed = {}
+    parsed = {
+        'stednavn': None, 'adresse': None, 'postnr': None, 'by': None,
+        'lat': None, 'long': None, 'linktilgooglemaps': None,
+        'alarmtype_kritisk': False, 'alarmtype_seriøs': False,
+        'alarmtype_lavrisiko': False, 'alarmtype_højrisiko': False,
+        'alarmkald_politi': False, 'alarmkald_brand': False,
+        'alarmkald_isl': False, 'alarmkald_medicin': False,
+        'alarmkald_vagt': False, 'alarmkald_specialrespons': False,
+        'specifik_brandalarm': False, 'specifik_gasledningsbrud': False,
+        'specifik_bygningsbrand': False
+    }
 
     try:
         # Parse lokationsdetaljer
-        parsed['stednavn'] = extract_field(r"Message:.*?\n([^\n]+)<CR><LF>", message, default=None)
-        parsed['adresse'] = extract_field(r"<CR><LF>([^<]+) \d+", message, default=None)
-        parsed['postnr'] = extract_field(r"<CR><LF>(\d{4})", message, default=None)
-        parsed['by'] = extract_field(r"<CR><LF>\d{4} ([^\n<]+)", message, default=None)
+        parsed['stednavn'] = extract_field(r"Message:.*?\n([^\n]+)<CR><LF>", message)
+        parsed['adresse'] = extract_field(r"<CR><LF>([^<]+) \d+", message)
+        parsed['postnr'] = extract_field(r"<CR><LF>(\d{4})", message)
+        parsed['by'] = extract_field(r"<CR><LF>\d{4} ([^\n<]+)", message)
 
         # Parse koordinater
-        parsed['lat'] = extract_field(r"N([\d.]+)", message, default=None)
-        parsed['long'] = extract_field(r"E([\d.]+)", message, default=None)
+        parsed['lat'] = extract_field(r"N([\d.]+)", message)
+        parsed['long'] = extract_field(r"E([\d.]+)", message)
         parsed['linktilgooglemaps'] = generate_google_maps_link(
             parsed['lat'], parsed['long'], parsed['adresse'], parsed['postnr'], parsed['by']
         )
@@ -73,29 +81,36 @@ def parse_message_dynamic(message, cfg):
 
     return parsed
 
-def format_message(data):
+def save_parsed_message_to_db(raw_message, parsed_message, db_path='messages.db'):
     """
-    Formaterer dictionary til en læsbar beskedtekst.
+    Gemmer en rå og dekodet besked i SQLite-databasen.
     """
-    message_parts = []
-
-    # Tilføj relevante dele til besked
-    if data.get('stednavn'):
-        message_parts.append(f"Stednavn: {data['stednavn']}")
-    if data.get('adresse'):
-        message_parts.append(f"Adresse: {data['adresse']}")
-    if data.get('postnr') and data.get('by'):
-        message_parts.append(f"Postnr og by: {data['postnr']} {data['by']}")
-    if data.get('linktilgooglemaps'):
-        message_parts.append(f"Google Maps: {data['linktilgooglemaps']}")
-
-    # Tilføj alarmtyper og andre detaljer
-    for key, value in data.items():
-        if key.startswith('alarmtype_') or key.startswith('alarmkald_') or key.startswith('specifik_'):
-            if value:
-                message_parts.append(f"{key.replace('_', ' ').title()}: {value}")
-
-    return "\n".join(message_parts)
+    try:
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        cursor.execute("""
+        INSERT INTO messages (
+            raw_message, stednavn, adresse, postnr, by, lat, long, linktilgooglemaps,
+            alarmtype_kritisk, alarmtype_seriøs, alarmtype_lavrisiko, alarmtype_højrisiko,
+            alarmkald_politi, alarmkald_brand, alarmkald_isl, alarmkald_medicin,
+            alarmkald_vagt, alarmkald_specialrespons, specifik_brandalarm,
+            specifik_gasledningsbrud, specifik_bygningsbrand
+        ) VALUES (
+            :raw_message, :stednavn, :adresse, :postnr, :by, :lat, :long, :linktilgooglemaps,
+            :alarmtype_kritisk, :alarmtype_seriøs, :alarmtype_lavrisiko, :alarmtype_højrisiko,
+            :alarmkald_politi, :alarmkald_brand, :alarmkald_isl, :alarmkald_medicin,
+            :alarmkald_vagt, :alarmkald_specialrespons, :specifik_brandalarm,
+            :specifik_gasledningsbrud, :specifik_bygningsbrand
+        )
+        """, {
+            'raw_message': raw_message,
+            **parsed_message
+        })
+        conn.commit()
+        conn.close()
+        logging.info("Dekodet besked gemt i databasen.")
+    except Exception as e:
+        logging.error(f"Fejl under gemning i databasen: {e}")
 
 def load_config(filepath='config.txt'):
     """
@@ -104,39 +119,3 @@ def load_config(filepath='config.txt'):
     cfg = ConfigParser()
     cfg.read(filepath)
     return cfg
-
-def update_messages_dict(message, cfg):
-    """
-    Opdaterer `messages_dict` med en ny besked.
-    """
-    global messages_dict
-
-    # Parse beskeden
-    parsed_message = parse_message_dynamic(message, cfg)
-
-    # Bestem unik nøgle (fx via jobnr eller adresse)
-    unique_key = parsed_message.get('jobnr') or parsed_message.get('adresse') or len(messages_dict)
-
-    # Opdater eksisterende besked eller tilføj ny
-    if unique_key in messages_dict:
-        messages_dict[unique_key].update(parsed_message)
-    else:
-        messages_dict[unique_key] = parsed_message
-
-    # Log beskeden
-    logging.info(f"Besked tilføjet/opdateret: {parsed_message}")
-
-def insert_example_messages(cfg):
-    """
-    Tilføjer eksempeldatabeskeder ved opstart.
-    """
-    global messages_dict
-
-    if not messages_dict:
-        test_message_1 = "(K)M+V<CR><LF>Test-besked 1<CR><LF>Eksempelgade 1<CR><LF>1234 Testby<CR><LF>Job-nr: 12345"
-        test_message_2 = "(L)M+V<CR><LF>Test-besked 2<CR><LF>Eksempelgade 2<CR><LF>5678 Andenby<CR><LF>Job-nr: 67890"
-
-        update_messages_dict(test_message_1, cfg)
-        update_messages_dict(test_message_2, cfg)
-
-        logging.info("Eksempelbeskeder indsat.")
