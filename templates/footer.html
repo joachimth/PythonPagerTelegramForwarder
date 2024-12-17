@@ -1,26 +1,29 @@
-        <!-- Sideindhold kommer her -->
-    </div>
+        </div>
+        <footer class="mt-5 text-center py-3">
+            <p class="mb-0">by Joachim Thirsbro 2024</p>
+            <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js" integrity="sha384-oBqDVmMz9ATKxIep9tiCxS/Z9fNfEXiDAYTujMAeBAsjFuCZSmKbSSUnQlmh/jp3" crossorigin="anonymous"></script>
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.min.js" integrity="sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V" crossorigin="anonymous"></script>
+            <script>
+                const themeToggle = document.getElementById('themeToggle');
+                const body = document.body;
 
-    <footer class="mt-5 bg-light text-center py-3">
-        <p class="mb-0">by Joachim Thirsbro 2024</p>
-        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js" integrity="sha384-oBqDVmMz9ATKxIep9tiCxS/Z9fNfEXiDAYTujMAeBAsjFuCZSmKbSSUnQlmh/jp3" crossorigin="anonymous"></script>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.min.js" integrity="sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V" crossorigin="anonymous"></script>
-        <script>
-            const themeToggle = document.getElementById('themeToggle');
-            const body = document.body;
-
-            // Skift tema baseret på toggle-knappen
-            themeToggle.addEventListener('change', () => {
-                if (themeToggle.checked) {
-                    body.classList.remove('light-mode');
-                    body.classList.add('dark-mode');
-                } else {
-                    body.classList.remove('dark-mode');
-                    body.classList.add('light-mode');
+                // Initialiser tema fra localStorage
+                const savedTheme = localStorage.getItem('theme');
+                if (savedTheme) {
+                    body.classList.remove('light-mode', 'dark-mode');
+                    body.classList.add(savedTheme);
+                    themeToggle.checked = savedTheme === 'dark-mode';
                 }
-            });
-        </script>
-    </footer>
-</body>
+
+                // Skift tema baseret på toggle-knappen
+                themeToggle.addEventListener('change', () => {
+                    const newTheme = themeToggle.checked ? 'dark-mode' : 'light-mode';
+                    body.classList.remove('light-mode', 'dark-mode');
+                    body.classList.add(newTheme);
+                    localStorage.setItem('theme', newTheme); // Gem tema-valg
+                });
+            </script>
+        </footer>
+    </body>
 
 </html>
