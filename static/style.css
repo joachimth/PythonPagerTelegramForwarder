@@ -1,0 +1,44 @@
+body.light-mode {
+    background-color: #f8f9fa;
+    color: #212529;
+}
+
+body.dark-mode {
+    background-color: #212529;
+    color: #f8f9fa;
+}
+
+.toggle-switch {
+    cursor: pointer;
+}
+
+#logo {
+    height: 50px; /* Juster logoets højde */
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px;
+}
+
+.header-title {
+    flex-grow: 1;
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.dark-mode .dark-card {
+    background-color: #343a40;
+    color: #f8f9fa;
+}
+
+.dark-mode .btn-link {
+    color: #f8f9fa;
+}
+
+.dark-mode .btn-link:hover {
+    color: #adb5bd;
+}
