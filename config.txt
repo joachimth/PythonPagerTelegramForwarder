@@ -8,6 +8,7 @@ freq = 171.300M
 
 [rtl_fm]
 # RTL-SDR-indstillinger
+# Tidligere ppmerror 32.
 device_index = 0
 sample_rate = 22050
 enable_option = -E dc
@@ -25,7 +26,7 @@ min_len = 1
 [kal]
 # Indstillinger for kalibrering
 gsmband = GSM900
-enable_calibration = false
+enable_calibration = true
 
 [Encoding]
 # Encoding indstillinger
