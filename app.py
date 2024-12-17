@@ -10,50 +10,90 @@ logger = logging.getLogger("app")
 
 DB_PATH = "messages.db"
 
-def fetch_messages_from_db(limit=10):
+def fetch_raw_messages(limit=10):
     """
-    Henter de seneste beskeder fra databasen.
+    Henter rå beskeder fra databasen, som endnu ikke er dekodet.
     """
     with sqlite3.connect(DB_PATH) as conn:
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT raw_message, timestamp, parsed_fields
+            SELECT id, raw_message, timestamp, parsed_fields
             FROM messages
+            WHERE parsed_fields IS NULL
             ORDER BY id DESC
             LIMIT ?
         """, (limit,))
-        rows = cursor.fetchall()
-    return rows
+        return cursor.fetchall()
+
+def update_parsed_message_in_db(message_id, parsed_message):
+    """
+    Opdaterer databasen med de dekodede beskeder.
+    """
+    try:
+        with sqlite3.connect(DB_PATH) as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                UPDATE messages
+                SET parsed_fields = ?
+                WHERE id = ?
+            """, (json.dumps(parsed_message), message_id))
+            conn.commit()
+            logger.info(f"Besked ID {message_id} opdateret med dekodede data.")
+    except Exception as e:
+        logger.error(f"Fejl under opdatering af besked ID {message_id}: {e}")
+
+def fetch_latest_parsed_messages(limit=10):
+    """
+    Henter de seneste dekodede beskeder fra databasen.
+    """
+    with sqlite3.connect(DB_PATH) as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT id, parsed_fields, timestamp
+            FROM messages
+            WHERE parsed_fields IS NOT NULL
+            ORDER BY id DESC
+            LIMIT ?
+        """, (limit,))
+        return cursor.fetchall()
 
 def process_and_send_messages():
     """
-    Henter beskeder fra databasen, parser dem og sender dem til Telegram.
+    Henter rå beskeder fra databasen, parser dem, gemmer dekodede data og sender dem til Telegram.
     """
     try:
-        messages = fetch_messages_from_db()
+        # Hent rå beskeder, der mangler parsing
+        messages = fetch_raw_messages()
         if not messages:
-            logger.info("Ingen nye beskeder modtaget.")
+            logger.info("Ingen nye rå beskeder fundet.")
             return
 
         telegram_sender = TelegramSender()
 
-        for raw_message, timestamp, parsed_fields in messages:
+        for message_id, raw_message, timestamp, parsed_fields in messages:
             try:
-                logger.info(f"Modtaget rå besked: {raw_message} på tidspunkt {timestamp}")
-                
-                # Hvis parsed_fields ikke er tom, brug det
-                parsed_message = json.loads(parsed_fields) if parsed_fields else parse_message_dynamic(raw_message)
+                logger.info(f"Behandler rå besked ID {message_id} modtaget på tidspunkt {timestamp}")
+
+                # Parse beskeden, hvis den ikke allerede er dekodet
+                if not parsed_fields:
+                    parsed_message = parse_message_dynamic(raw_message)
+                    update_parsed_message_in_db(message_id, parsed_message)
+                else:
+                    parsed_message = json.loads(parsed_fields)
+
                 formatted_message = format_message(parsed_message)
 
                 # Send besked til Telegram
                 telegram_sender.send_message(formatted_message)
                 logger.info(f"Besked sendt til Telegram: {formatted_message}")
 
+            except json.JSONDecodeError:
+                logger.error(f"Fejl i JSON-format for besked ID {message_id}.")
             except Exception as e:
-                logger.error(f"Fejl under behandling af besked: {e}")
+                logger.error(f"Fejl under behandling af besked ID {message_id}: {e}")
 
     except Exception as e:
-        logger.error(f"Fejl under hentning af beskeder: {e}")
+        logger.error(f"Fejl under beskedbehandling: {e}")
 
 if __name__ == "__main__":
     logger.info("Starter app.py")
