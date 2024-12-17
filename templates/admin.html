@@ -1,118 +1,125 @@
 {% include 'header.html' %}
-        <h3>Admin Dashboard</h3>
+<div class="container mt-5">
+    <h3 class="text-center">Admin Dashboard</h3>
 
-        <!-- Flash-messages for brugerfeedback -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-        <div>
-            {% for category, message in messages %}
-            <div class="alert alert-{{ category }}">{{ message }}</div>
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div>
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- Navigation -->
+    <nav class="mt-4">
+        <div class="nav nav-tabs" id="nav-tab" role="tablist">
+            {% for section in config.keys() %}
+            <a class="nav-item nav-link {% if loop.first %}active{% endif %}" 
+               id="nav-{{ section }}-tab"
+               data-bs-toggle="tab" 
+               href="#nav-{{ section }}" 
+               role="tab" 
+               aria-controls="nav-{{ section }}" 
+               aria-selected="true">
+                <i class="fas fa-cogs"></i> {{ section }}
+            </a>
             {% endfor %}
         </div>
-        {% endif %}
-        {% endwith %}
+    </nav>
 
-        <!-- Navigation til konfigurationssektioner -->
+    <!-- Forms -->
+    <form action="/admin" method="post">
+        <div class="tab-content mt-3" id="nav-tabContent">
+            {% for section, values in config.items() %}
+            <div class="tab-pane fade {% if loop.first %}show active{% endif %}" 
+                 id="nav-{{ section }}" 
+                 role="tabpanel" 
+                 aria-labelledby="nav-{{ section }}-tab">
+                <div class="card dark-card">
+                    <div class="card-header">
+                        <h5>{{ section }}</h5>
+                    </div>
+                    <div class="card-body">
+                        {% for key, value in values.items() %}
+                        <div class="mb-3">
+                            <label for="{{ section }}_{{ key }}" class="form-label">{{ key }}</label>
+                            <input 
+                                type="text" 
+                                class="form-control" 
+                                id="{{ section }}_{{ key }}" 
+                                name="{{ section }}_{{ key }}" 
+                                value="{{ value }}" 
+                                placeholder="Indtast værdien for {{ key }}">
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <button type="submit" class="btn btn-primary mt-3">Gem ændringer</button>
+    </form>
+
+    <!-- Logs -->
+    <div class="mt-4">
+        <h4>Logs</h4>
         <nav>
-            <div class="nav nav-tabs" id="nav-tab" role="tablist">
-                {% for section in config.keys() %}
+            <div class="nav nav-tabs" id="log-nav-tab" role="tablist">
+                {% for log in log_files %}
                 <a class="nav-item nav-link {% if loop.first %}active{% endif %}" 
-                   id="nav-{{ section }}-tab"
+                   id="nav-{{ log|replace('.', '_dot_') }}-tab"
                    data-bs-toggle="tab" 
-                   href="#nav-{{ section }}" 
+                   href="#nav-{{ log|replace('.', '_dot_') }}" 
                    role="tab" 
-                   aria-controls="nav-{{ section }}"
-                   aria-selected="true">{{ section }}</a>
+                   aria-controls="nav-{{ log|replace('.', '_dot_') }}" 
+                   aria-selected="true">
+                    <i class="fas fa-file-alt"></i> {{ log }}
+                </a>
                 {% endfor %}
             </div>
         </nav>
-
-        <!-- Indhold for hver konfigurationssektion -->
-        <form action="/admin" method="post">
-            <div class="tab-content mt-3" id="nav-tabContent">
-                {% for section, values in config.items() %}
-                <div class="tab-pane fade {% if loop.first %}show active{% endif %}" 
-                     id="nav-{{ section }}" 
-                     role="tabpanel" 
-                     aria-labelledby="nav-{{ section }}-tab">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5>{{ section }}</h5>
-                        </div>
-                        <div class="card-body">
-                            {% for key, value in values.items() %}
-                            <div class="mb-3">
-                                <label for="{{ section }}_{{ key }}" class="form-label">{{ key }}</label>
-                                <input 
-                                    type="text" 
-                                    class="form-control" 
-                                    id="{{ section }}_{{ key }}" 
-                                    name="{{ section }}_{{ key }}" 
-                                    value="{{ value }}">
-                            </div>
-                            {% endfor %}
-                        </div>
+        <div class="tab-content mt-3" id="log-nav-tabContent">
+            {% for log in log_files %}
+            <div class="tab-pane fade {% if loop.first %}show active{% endif %}" 
+                 id="nav-{{ log|replace('.', '_dot_') }}" 
+                 role="tabpanel" 
+                 aria-labelledby="nav-{{ log|replace('.', '_dot_') }}-tab">
+                <div class="card dark-card">
+                    <div class="card-header">
+                        <h5>{{ log }}</h5>
+                    </div>
+                    <div class="card-body">
+                        <a href="/view_log/{{ log }}" class="btn btn-link">Se Log</a>
+                        <a href="#" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#confirmClearLog{{ log }}">Slet Log</a>
                     </div>
                 </div>
-                {% endfor %}
             </div>
-            <button type="submit" class="btn btn-primary mt-3">Save Changes</button>
-        </form>
+            {% endfor %}
+        </div>
+    </div>
 
-        <!-- Logs Sektion -->
-        <div class="mt-4">
-            <h4>Logs</h4>
-            <nav>
-                <div class="nav nav-tabs" id="log-nav-tab" role="tablist">
-                    {% for log in log_files %}
-                    <a class="nav-item nav-link {% if loop.first %}active{% endif %}" 
-                       id="nav-{{ log|replace('.', '_dot_') }}-tab"
-                       data-bs-toggle="tab" 
-                       href="#nav-{{ log|replace('.', '_dot_') }}" 
-                       role="tab" 
-                       aria-controls="nav-{{ log|replace('.', '_dot_') }}"
-                       aria-selected="true">{{ log }}</a>
-                    {% endfor %}
-                </div>
-            </nav>
-            <div class="tab-content mt-3" id="log-nav-tabContent">
-                {% for log in log_files %}
-                <div class="tab-pane fade {% if loop.first %}show active{% endif %}" 
-                     id="nav-{{ log|replace('.', '_dot_') }}" 
-                     role="tabpanel" 
-                     aria-labelledby="nav-{{ log|replace('.', '_dot_') }}-tab">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5>{{ log }}</h5>
-                        </div>
-                        <div class="card-body">
-                            <a href="/view_log/{{ log }}" class="btn btn-link">View Log</a>
-                            <a href="/clear_log/{{ log }}" class="btn btn-danger">Clear Log</a>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
+    <!-- Seneste Beskeder -->
+    <div class="mt-4">
+        <div class="card dark-card">
+            <div class="card-header">
+                <h5>Seneste Beskeder</h5>
+            </div>
+            <div class="card-body">
+                <a href="/latest_messages" class="btn btn-info">Vis Seneste Beskeder</a>
             </div>
         </div>
+    </div>
 
-        <!-- Seneste Beskeder -->
-        <div class="mt-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5>Seneste Beskeder</h5>
-                </div>
-                <div class="card-body">
-                    <a href="/latest_messages" class="btn btn-info">Vis Seneste Beskeder</a>
-                </div>
+    <!-- Restart System -->
+    <div class="mt-4">
+        <div class="card dark-card">
+            <div class="card-body text-center">
+                <a href="/restart_system" class="btn btn-danger">Genstart System</a>
             </div>
         </div>
-
-        <!-- Genstart System -->
-        <div class="mt-4">
-            <div class="card">
-                <div class="card-body text-center">
-                    <a href="/restart_system" class="btn btn-danger">Restart System</a>
-                </div>
-            </div>
-        </div>
+    </div>
+</div>
 {% include 'footer.html' %}
