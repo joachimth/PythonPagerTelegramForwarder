@@ -23,7 +23,7 @@
         }
 
         #logo {
-            height: 50px; /* Juster logoets højde */
+            height: 50px;
         }
 
         .header {
@@ -39,11 +39,20 @@
             font-size: 1.5rem;
             font-weight: bold;
         }
+
+        footer {
+            background-color: var(--footer-bg, #f8f9fa);
+            color: var(--footer-text, #212529);
+        }
+
+        body.dark-mode footer {
+            --footer-bg: #212529;
+            --footer-text: #f8f9fa;
+        }
     </style>
 </head>
 
-<body class="light-mode">
-    <!-- Header -->
+<body>
     <header class="header bg-light border-bottom">
         <!-- Logo -->
         <div>
@@ -59,5 +68,4 @@
             </label>
         </div>
     </header>
-
     <div class="container mt-4">
