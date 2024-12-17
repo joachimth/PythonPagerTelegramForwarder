@@ -57,19 +57,19 @@ if __name__ == "__main__":
     Hovedprogram til at hente beskeder og sende dem til Telegram.
     """
     def main():
-    logger.info("Indlæser test eksempler, app.py")
-    # Indlæs konfiguration
-    cfg = load_config()
+        logger.info("Indlæser test eksempler, app.py")
+        # Indlæs konfiguration
+        cfg = load_config()
 
-    # Tilføj eksempelbeskeder
-    insert_example_messages(cfg)
+        # Tilføj eksempelbeskeder
+        insert_example_messages(cfg)
     
-    logger.info("Starter app.py")
-    try:
-        while True:
-            process_and_send_messages()
-            time.sleep(5)  # Polling interval
-    except KeyboardInterrupt:
-        logger.info("App afsluttes af bruger.")
-    except Exception as e:
-        logger.error(f"Kritisk fejl i app.py: {e}, Line: {sys.exc_info()[-1].tb_lineno}")
+        logger.info("Starter app.py")
+        try:
+            while True:
+                process_and_send_messages()
+                time.sleep(5)  # Polling interval
+        except KeyboardInterrupt:
+            logger.info("App afsluttes af bruger.")
+        except Exception as e:
+            logger.error(f"Kritisk fejl i app.py: {e}, Line: {sys.exc_info()[-1].tb_lineno}")
