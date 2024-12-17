@@ -1,20 +1,21 @@
 {% include 'header.html' %}
         <!-- Header -->
         <div class="card mb-4">
-            <div class="card-header">
+            <div class="card-header text-center">
                 <h3 class="mb-0">Log Viewer</h3>
+                <p class="text-muted mb-0">Viewing content of the selected log file</p>
             </div>
         </div>
 
         <!-- Log Content -->
         <div class="card mb-4">
             <div class="card-body">
-                <pre class="bg-light p-3 border rounded">{{ content }}</pre>
+                <pre class="bg-light p-3 border rounded overflow-auto" style="max-height: 500px;">{{ content }}</pre>
             </div>
         </div>
 
         <!-- Back to Dashboard -->
         <div class="text-center">
-            <a href="/admin" class="btn btn-secondary">Back to Dashboard</a>
+            <a href="/admin" class="btn btn-outline-secondary">Back to Dashboard</a>
         </div>
 {% include 'footer.html' %}
