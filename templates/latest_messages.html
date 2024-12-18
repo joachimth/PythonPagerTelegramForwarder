@@ -1,93 +1,60 @@
 {% include 'header.html' %}
-    <!-- Titel -->
-    <div class="card mb-4">
-        <div class="card-header">
-            <h1 class="text-center">Seneste Beskeder</h1>
-        </div>
-    </div>
-
-    <!-- Tabel -->
+<div class="container mt-5">
     <div class="card">
+        <div class="card-header">
+            <h3>Seneste Beskeder</h3>
+        </div>
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table table-striped table-bordered">
-                    <thead class="table-light">
-                        <tr id="table-header">
-                            <!-- Dynamisk genereret tabelhoveder -->
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tidspunkt</th>
+                            <th>Rå besked</th>
+                            <th>Parsed Fields</th>
                         </tr>
                     </thead>
-                    <tbody id="message-table-body">
-                        <!-- Dynamisk opdateret med JavaScript -->
+                    <tbody id="messages-table">
+                        <!-- Dynamisk genererede rækker -->
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- JavaScript til dynamisk opdatering -->
-    <script>
-        function generateTableHeaders(properties) {
-            const headerRow = document.getElementById('table-header');
-            headerRow.innerHTML = ""; // Rens eksisterende headers
-            properties.forEach(property => {
-                const th = document.createElement('th');
-                th.textContent = property.charAt(0).toUpperCase() + property.slice(1); // Formatér tekst
-                headerRow.appendChild(th);
-            });
-        }
+<script>
+    function fetchMessages() {
+        fetch('/latest_messages_json')
+            .then(response => response.json())
+            .then(data => {
+                const table = document.getElementById('messages-table');
+                table.innerHTML = '';
 
-        function updateMessages() {
-            fetch('/latest_messages_json')
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Netværksfejl under hentning af beskeder');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    const tableBody = document.getElementById('message-table-body');
-                    tableBody.innerHTML = ""; // Rens tabellen
-
-                    if (data.messages.length === 0) {
-                        // Ingen beskeder fundet
-                        const emptyRow = document.createElement('tr');
-                        emptyRow.innerHTML = `
-                            <td colspan="100%" class="text-center">Ingen beskeder fundet.</td>
-                        `;
-                        tableBody.appendChild(emptyRow);
-                        return;
-                    }
-
-                    // Dynamisk genererede tabelhoveder baseret på egenskaber
-                    const properties = Object.keys(data.messages[0]);
-                    generateTableHeaders(properties);
-
-                    // Tilføj beskeder til tabellen
+                if (data.messages.length === 0) {
+                    const row = document.createElement('tr');
+                    row.innerHTML = '<td colspan="4" class="text-center">Ingen beskeder fundet.</td>';
+                    table.appendChild(row);
+                } else {
                     data.messages.forEach(message => {
                         const row = document.createElement('tr');
-                        properties.forEach(property => {
-                            const cell = document.createElement('td');
-                            cell.textContent = message[property] || "N/A";
-                            row.appendChild(cell);
-                        });
-                        tableBody.appendChild(row);
+                        row.innerHTML = `
+                            <td>${message.id}</td>
+                            <td>${message.timestamp}</td>
+                            <td>${message.raw_message}</td>
+                            <td>${message.parsed_fields}</td>
+                        `;
+                        table.appendChild(row);
                     });
-                })
-                .catch(error => {
-                    console.error('Error fetching messages:', error);
-                    const tableBody = document.getElementById('message-table-body');
-                    tableBody.innerHTML = `
-                        <tr>
-                            <td colspan="100%" class="text-center text-danger">
-                                Fejl under hentning af beskeder: ${error.message}
-                            </td>
-                        </tr>
-                    `;
-                });
-        }
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching messages:', error);
+            });
+    }
 
-        // Opdater tabellen hver 5. sekund
-        setInterval(updateMessages, 5000);
-        window.onload = updateMessages;
-    </script>
+    fetchMessages(); // Hent beskeder ved sideindlæsning
+    setInterval(fetchMessages, 5000); // Opdater hvert 5. sekund
+</script>
 {% include 'footer.html' %}
