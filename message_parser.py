@@ -2,7 +2,6 @@ import sqlite3
 import logging
 import json
 from configparser import ConfigParser
-from datetime import datetime
 
 # Logger opsætning
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -18,20 +17,21 @@ def load_config(filepath='config.txt'):
     cfg.read(filepath)
     return cfg
 
-def parse_message_dynamic(message, cfg):
+def parse_message_dynamic(message, config):
     """
     Parser en besked dynamisk baseret på regler og mønstre i config.txt.
     """
     parsed = {"raw_message": message}
     try:
-        parsed['stednavn'] = "Eksempel Sted"
-        parsed['adresse'] = "Eksempelvej 1"
-        parsed['postnr'] = "1234"
-        parsed['by'] = "Testby"
-        parsed['alarmtype'] = "Kritisk"
-        # Tilføj andre felter efter behov
+        # Eksempel på dynamisk parsing baseret på `config.txt`
+        parsed['stednavn'] = config.get('MessageParsing', 'stednavn', fallback="Ukendt Sted")
+        parsed['adresse'] = config.get('MessageParsing', 'adresse', fallback="Ukendt Adresse")
+        parsed['postnr'] = config.get('MessageParsing', 'postnr', fallback="0000")
+        parsed['by'] = config.get('MessageParsing', 'by', fallback="Ukendt By")
+        parsed['alarmtype'] = config.get('MessageParsing', 'alarmtype', fallback="Ukendt Alarmtype")
+        # Du kan tilføje mere dynamik her ved hjælp af regex-mønstre fra config
     except Exception as e:
-        logger.error(f"Fejl under parsing: {e}")
+        logger.error(f"Fejl under parsing af besked: {e}")
         parsed['error'] = True
 
     return parsed
@@ -53,26 +53,32 @@ def update_message_in_db(message_id, parsed_message):
     except sqlite3.Error as e:
         logger.error(f"Fejl under opdatering af databasen: {e}")
 
-def process_unparsed_messages(cfg):
+def process_unparsed_messages():
     """
     Henter og parser beskeder, der endnu ikke er blevet parsed.
     """
+    config = load_config()
+
     try:
         with sqlite3.connect(DB_PATH) as conn:
             cursor = conn.cursor()
             cursor.execute("""
-                SELECT id, raw_message FROM messages
+                SELECT id, raw_message
+                FROM messages
                 WHERE parsed_fields IS NULL
             """)
             rows = cursor.fetchall()
 
+            if not rows:
+                logger.info("Ingen uparrede beskeder fundet.")
+                return
+
             for message_id, raw_message in rows:
-                parsed_message = parse_message_dynamic(raw_message, cfg)
+                parsed_message = parse_message_dynamic(raw_message, config)
                 update_message_in_db(message_id, parsed_message)
 
     except sqlite3.Error as e:
         logger.error(f"Fejl under hentning af beskeder fra databasen: {e}")
 
 if __name__ == "__main__":
-    cfg = load_config()
-    process_unparsed_messages(cfg)
+    process_unparsed_messages()
