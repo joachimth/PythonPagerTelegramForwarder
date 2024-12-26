@@ -1,33 +1,27 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user
-import configparser
-import os
-import glob  # Sørg for, at glob er importeret
 import sqlite3
 import logging
 import json
+import configparser
+import os
 
 # Logger opsætning
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
-logger = logging.getLogger("flaskapp_logger")
+logger = logging.getLogger("flaskapp")
 
-# Database placering
 DB_PATH = "messages.db"
+CONFIG_PATH = "config.txt"
 
-# Indlæs konfiguration
-config = configparser.ConfigParser()
-config.read('config.txt')
-flask_port = int(config['Flask']['port'])
-
-# Flask setup
 app = Flask(__name__)
 app.secret_key = "yoursecretkey"
+
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = 'login'
+login_manager.login_view = "login"
 
 # Dummy brugerdata
-users = {'joachimth@nowhere.com': {'password': 'changeme'}}
+users = {"admin@domain.com": {"password": "password"}}
 
 class User(UserMixin):
     pass
@@ -40,92 +34,56 @@ def user_loader(email):
     user.id = email
     return user
 
-# Hjemmeside Route
-@app.route('/')
+# Hjemmeside
+@app.route("/")
 def home():
-    return redirect(url_for('login'))
+    return redirect(url_for("login"))
 
-# Login Route
-@app.route('/login', methods=['GET', 'POST'])
+# Login side
+@app.route("/login", methods=["GET", "POST"])
 def login():
-    if request.method == 'POST':
-        email = request.form['email']
-        if (email in users) and (request.form['password'] == users[email]['password']):
+    if request.method == "POST":
+        email = request.form["email"]
+        if email in users and request.form["password"] == users[email]["password"]:
             user = User()
             user.id = email
             login_user(user)
-            return redirect(url_for('admin'))
-        else:
-            flash('Invalid credentials', 'danger')
-    return render_template('login.html')
+            return redirect(url_for("admin"))
+        flash("Invalid credentials", "danger")
+    return render_template("login.html")
 
-# Logout Route
-@app.route('/logout')
+# Logout rute
+@app.route("/logout")
 @login_required
 def logout():
     logout_user()
-    flash('Logged out successfully!', 'success')
-    return redirect(url_for('login'))
+    flash("Logged out successfully!", "success")
+    return redirect(url_for("login"))
 
-# Admin Dashboard Route
-@app.route('/admin', methods=['GET', 'POST'])
+# Admin dashboard
+@app.route("/admin", methods=["GET", "POST"])
 @login_required
 def admin():
-    local_config = configparser.ConfigParser()
-    local_config.read('config.txt')
+    config = configparser.ConfigParser()
+    config.read(CONFIG_PATH)
 
-    if request.method == 'POST':
+    if request.method == "POST":
         try:
-            for section in local_config.sections():
-                for key in local_config[section]:
-                    local_config[section][key] = request.form[f'{section}_{key}']
-            with open('config.txt', 'w') as config_file:
-                local_config.write(config_file)
-            flash('Configuration saved successfully!', 'success')
+            for section in config.sections():
+                for key in config[section]:
+                    config[section][key] = request.form[f"{section}_{key}"]
+            with open(CONFIG_PATH, "w") as config_file:
+                config.write(config_file)
+            flash("Configuration updated successfully!", "success")
         except Exception as e:
             logger.error(f"Error updating configuration: {e}")
-            flash('Error saving configuration!', 'danger')
+            flash("Failed to update configuration!", "danger")
 
-    log_files = [log for log in glob.glob('**/*.log*', recursive=True) if os.path.getsize(log) > 0]
-    return render_template('admin.html', config=local_config, log_files=log_files)
+    log_files = [log for log in os.listdir(".") if log.endswith(".log")]
+    return render_template("admin.html", config=config, log_files=log_files)
 
-# View Log Route
-@app.route('/view_log/<filename>')
-@login_required
-def view_log(filename):
-    try:
-        if os.path.exists(filename):
-            with open(filename, 'r') as f:
-                content = f.read()
-            return render_template('log.html', content=content)
-        else:
-            logger.warning(f"File {filename} does not exist.")
-            return "Filen eksisterer ikke.", 404
-    except Exception as e:
-        logger.error(f"Error viewing log: {e}")
-        return "En fejl opstod under visning af log.", 500
-
-# Clear Log Route
-@app.route('/clear_log/<filename>')
-@login_required
-def clear_log(filename):
-    try:
-        with open(filename, 'w') as f:
-            f.write("")
-        flash(f'Log {filename} cleared.', 'success')
-    except Exception as e:
-        logger.error(f"Error clearing log {filename}: {e}")
-        flash(f'Error clearing log {filename}.', 'danger')
-    return redirect(url_for('admin'))
-
-# Latest Messages Route
-@app.route('/latest_messages')
-@login_required
-def latest_messages():
-    return render_template('latest_messages.html')
-
-# Latest Messages JSON Route
-@app.route('/latest_messages_json')
+# Seneste beskeder JSON
+@app.route("/latest_messages_json")
 @login_required
 def latest_messages_json():
     try:
@@ -139,66 +97,105 @@ def latest_messages_json():
             """)
             rows = cursor.fetchall()
 
-            # Konverter resultater til JSON-venligt format
-            messages = []
-            for row in rows:
-                message = {
+            messages = [
+                {
                     "id": row[0],
                     "timestamp": row[1],
                     "raw_message": row[2],
                     "parsed_fields": json.loads(row[3]) if row[3] else None
                 }
-                messages.append(message)
-
+                for row in rows
+            ]
             return jsonify({"messages": messages})
     except sqlite3.Error as e:
-        logger.error(f"Database error fetching messages: {e}")
-        return jsonify({"error": "Kunne ikke hente beskeder."}), 500
+        logger.error(f"Database error: {e}")
+        return jsonify({"error": "Could not retrieve messages."}), 500
 
-# Edit Message Parsing Route
-@app.route('/edit_message_parsing', methods=['GET', 'POST'])
+# Seneste beskeder side
+@app.route("/latest_messages")
+@login_required
+def latest_messages():
+    return render_template("latest_messages.html")
+
+# Log visning
+@app.route("/view_log/<filename>")
+@login_required
+def view_log(filename):
+    try:
+        if os.path.exists(filename):
+            with open(filename, "r") as file:
+                content = file.read()
+            return render_template("log.html", content=content)
+        flash("File does not exist.", "danger")
+        return redirect(url_for("admin"))
+    except Exception as e:
+        logger.error(f"Error viewing log: {e}")
+        flash("An error occurred while reading the log file.", "danger")
+        return redirect(url_for("admin"))
+
+# Log rydning
+@app.route("/clear_log/<filename>")
+@login_required
+def clear_log(filename):
+    try:
+        if os.path.exists(filename):
+            with open(filename, "w") as file:
+                file.write("")
+            flash(f"Log {filename} cleared.", "success")
+        else:
+            flash(f"Log {filename} does not exist.", "danger")
+    except Exception as e:
+        logger.error(f"Error clearing log {filename}: {e}")
+        flash(f"An error occurred while clearing the log.", "danger")
+    return redirect(url_for("admin"))
+
+# Redigering af parsing regler
+@app.route("/edit_message_parsing", methods=["GET", "POST"])
 @login_required
 def edit_message_parsing():
-    try:
-        if request.method == 'POST':
-            # Håndter ændringer af eksisterende eller nye parsing-regler
-            local_config = configparser.ConfigParser()
-            local_config.read('config.txt')
+    config = configparser.ConfigParser()
+    config.read(CONFIG_PATH)
 
-            if 'MessageParsing' not in local_config:
-                local_config.add_section('MessageParsing')
+    if request.method == "POST":
+        try:
+            if "new_key" in request.form and "new_value" in request.form:
+                new_key = request.form["new_key"]
+                new_value = request.form["new_value"]
+
+                if "MessageParsing" not in config.sections():
+                    config.add_section("MessageParsing")
+
+                config.set("MessageParsing", new_key, new_value)
 
             for key, value in request.form.items():
-                if key.startswith('key_'):
-                    original_key = key.split('key_', 1)[1]
-                    updated_value = request.form[f'value_{original_key}']
-                    local_config.set('MessageParsing', original_key, updated_value)
-                elif key == 'new_key' and value.strip():
-                    new_value = request.form['new_value']
-                    local_config.set('MessageParsing', value.strip(), new_value.strip())
+                if key.startswith("key_"):
+                    original_key = key.split("key_", 1)[1]
+                    updated_value = request.form[f"value_{original_key}"]
+                    config.set("MessageParsing", original_key, updated_value)
 
-            with open('config.txt', 'w') as config_file:
-                local_config.write(config_file)
-            flash('Parsing rules updated successfully.', 'success')
+            with open(CONFIG_PATH, "w") as configfile:
+                config.write(configfile)
 
-        return render_template('edit_message_parsing.html', message_parsing=config.items('MessageParsing'))
-    except Exception as e:
-        logger.error(f"Error editing message parsing: {e}")
-        flash('Failed to update parsing rules.', 'danger')
-        return redirect(url_for('admin'))
+            flash("Message parsing rules updated successfully!", "success")
+        except Exception as e:
+            logger.error(f"Error updating MessageParsing: {e}")
+            flash("Failed to update MessageParsing settings!", "danger")
 
-# Restart System Route
-@app.route('/restart_system')
+    message_parsing = config.items("MessageParsing") if "MessageParsing" in config.sections() else []
+    return render_template("edit_message_parsing.html", message_parsing=message_parsing)
+
+# System genstart
+@app.route("/restart_system")
 @login_required
 def restart_system():
     try:
-        os.system('reboot')
-        flash("Systemet genstarter...", 'info')
-        return redirect(url_for('admin'))
+        os.system("reboot")
+        flash("System is restarting...", "info")
+        return redirect(url_for("admin"))
     except Exception as e:
         logger.error(f"Error restarting system: {e}")
-        flash("Fejl under systemgenstart!", 'danger')
-        return redirect(url_for('admin'))
+        flash("Failed to restart system!", "danger")
+        return redirect(url_for("admin"))
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=flask_port, debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)
