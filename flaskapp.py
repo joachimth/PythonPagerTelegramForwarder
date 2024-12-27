@@ -21,7 +21,10 @@ login_manager.init_app(app)
 login_manager.login_view = "login"
 
 # Dummy brugerdata
-users = {"joachimth@nowhere.com": {"password": "changeme"}}
+#users = {"joachimth@nowhere.com": {"password": "changeme"}}
+
+# Dummy brugerdata
+users = {'joachimth@nowhere.com': {'password': 'changeme'}}
 
 class User(UserMixin):
     pass
