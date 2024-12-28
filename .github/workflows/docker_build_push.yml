@@ -1,12 +1,20 @@
-name: Docker Build and Test
+name: Docker Build and Push to DockerHub
 
 on:
   push:
     branches:
       - main
+    paths:
+      - 'requirements.txt'
+      - 'Dockerfile'
+      - 'rtl-sdr.rules'
   pull_request:
     branches:
       - main
+    paths:
+      - 'requirements.txt'
+      - 'Dockerfile'
+      - 'rtl-sdr.rules'
 
 permissions:
   contents: write
@@ -15,6 +23,7 @@ permissions:
 
 jobs:
   build_and_test:
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repository
@@ -26,8 +35,16 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      - name: Test Docker build
-        run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+      - name: Pull builder cache from DockerHub
+        run: |
+          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/pythonpagertelegramforwarder:builder || true
+
+      - name: Build builder stage
+        run: |
+          docker build \
+            --target builder \
+            --cache-from ${{ secrets.DOCKERHUB_USERNAME }}/pythonpagertelegramforwarder:builder \
+            --tag builder:latest .
 
   build_and_push:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -46,11 +63,20 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      - name: Build and push Docker image
+      - name: Pull cache from DockerHub
+        run: |
+          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/pythonpagertelegramforwarder:builder || true
+          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/pythonpagertelegramforwarder:latest || true
+
+      - name: Build and push Docker images
         uses: docker/build-push-action@v4
         with:
           context: .
           file: ./Dockerfile
           platforms: linux/amd64,linux/arm64,linux/arm/v7
+          cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/pythonpagertelegramforwarder:builder
+          cache-to: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/pythonpagertelegramforwarder:builder,mode=max
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/pythonpagertelegramforwarder:latest
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/pythonpagertelegramforwarder:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/pythonpagertelegramforwarder:$(date +%Y%m%d%H%M%S)
