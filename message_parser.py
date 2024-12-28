@@ -108,10 +108,14 @@ def process_unparsed_messages():
             rows = cursor.fetchall()
 
             logging.info(f"Fundet {len(rows)} beskeder, der skal parses.")
+            
+            telegram_sender = TelegramSender()
 
             for message_id, raw_message in rows:
                 logging.info(f"Behandler besked ID {message_id}: {raw_message}")
-                TelegramSender.send_message(f"{raw_message}")
+                
+                telegram_sender(raw_message)
+                
                 parsed_message = parse_message_dynamic(raw_message, cfg)
                 logging.info(f"Parsed besked: {parsed_message}")
                 update_message_in_db(message_id, parsed_message)
