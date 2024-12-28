@@ -42,4 +42,3 @@ jobs:
           push: true
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/pythonpagertelegramforwarder:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/pythonpagertelegramforwarder:${{ env.TIMESTAMP }}
