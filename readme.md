@@ -1,3 +1,4 @@
+[![Docker Build and Push to DockerHub](https://github.com/joachimth/PythonPagerTelegramForwarder/actions/workflows/docker_build_push.yml/badge.svg?branch=main)](https://github.com/joachimth/PythonPagerTelegramForwarder/actions/workflows/docker_build_push.yml)
 
 # PythonPagerTelegramForwarder
 
