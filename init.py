@@ -31,11 +31,34 @@ def run_flask_app(port):
     Starter Flask-applikationen.
     """
     logging.info(f"Starter Flask-app på port {port}")
-    run_script("flaskapp.py", port)
+    if not run_script("flaskapp.py", port):
+        logging.error("Flask-app fejlede.")
+
+def run_message_receiver():
+    """
+    Kører message_receiver.py.
+    """
+    logging.info("Starter program: message_receiver.py")
+    if not run_script("message_receiver.py"):
+        logging.error("message_receiver.py fejlede.")
+
+def run_message_parser():
+    """
+    Kører message_parser.py.
+    """
+    logging.info("Starter program: message_parser.py")
+    while True:
+        if not run_script("message_parser.py"):
+            logging.error("message_parser.py fejlede.")
+        else:
+            logging.info("message_parser.py afsluttede korrekt.")
+        # Kontrollér hvert 30. sekund for nye beskeder at parse
+        logging.info("Venter 30 sekunder før næste parsing.")
+        threading.Event().wait(30)
 
 def main():
     """
-    Hovedfunktion til at starte Flask-app, kalibreringsscript, initialisere database og køre hovedprogram.
+    Hovedfunktion til at starte Flask-app, kalibreringsscript, initialisere database og køre hovedprogrammer.
     """
     try:
         config = configparser.ConfigParser()
@@ -49,29 +72,27 @@ def main():
         flask_thread = threading.Thread(target=run_flask_app, args=(flask_port,))
         flask_thread.start()
 
-        # Kalibreringsscript
+        # Kør kalibreringsscriptet
         enable_calibration = config.getboolean("kal", "enable_calibration", fallback=True)
         if enable_calibration:
             logging.info("Kører kalibreringsscript...")
             if not run_script("kal_automation.py"):
                 logging.error("Kalibreringsscriptet fejlede.")
-                return
+        else:
+            logging.info("Kalibreringsscriptet er deaktiveret i config.txt.")
 
-        # Hovedprogram
-        #logging.info("Starter hovedprogram: app.py")
-        #if not run_script("app.py"):
-        #    logging.error("Hovedprogrammet fejlede.")
-        
-        # message_receiver.py
-        logging.info("Starter program: message_receiver.py")
-        if not run_script("message_receiver.py"):
-            logging.error("message_receiver.py fejlede.")
+        # Start message_receiver efter kalibreringsscriptet
+        receiver_thread = threading.Thread(target=run_message_receiver)
+        receiver_thread.start()
 
-        # message_parser.py - Start en enkelt gang lige nu. Ret i parser filen, for gentagende kontrol.
-        logging.info("Starter program: message_receiver.py")
-        if not run_script("message_receiver.py"):
-            logging.error("message_parser.py fejlede.")
+        # Start message_parser i en separat tråd
+        parser_thread = threading.Thread(target=run_message_parser)
+        parser_thread.start()
 
+        # Hold hovedtråden kørende
+        flask_thread.join()
+        receiver_thread.join()
+        parser_thread.join()
 
     except Exception as e:
         logging.error(f"Fejl i init.py: {e}")
