@@ -39,7 +39,7 @@ RUN git clone https://github.com/joachimth/multimon-ng.git && \
     cmake .. && make && make install
 
 # Clone and build kalibrate-rtl
-RUN git clone https://github.com/steve-m/kalibrate-rtl.git && \
+RUN git clone https://github.com/joachimth/kalibrate-rtl.git && \
     cd kalibrate-rtl && ./bootstrap && ./configure && \
     make && make install
 
