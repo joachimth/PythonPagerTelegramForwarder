@@ -61,6 +61,12 @@ def main():
         logging.info("Starter hovedprogram: app.py")
         if not run_script("app.py"):
             logging.error("Hovedprogrammet fejlede.")
+        
+        # message_receiver.py
+        logging.info("Starter program: message_receiver.py")
+        if not run_script("message_receiver.py"):
+            logging.error("message_receiver.py fejlede.")
+
 
     except Exception as e:
         logging.error(f"Fejl i init.py: {e}")
