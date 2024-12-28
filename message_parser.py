@@ -113,8 +113,11 @@ def process_unparsed_messages():
 
             for message_id, raw_message in rows:
                 logging.info(f"Behandler besked ID {message_id}: {raw_message}")
-                
-                telegram_sender(raw_message)
+
+                try:
+                    telegram_sender.send_message(raw_message)
+                except Exception as e:
+                    logging.error(f"Fejl under forsøg på at sende af besked: {raw_message}")
                 
                 parsed_message = parse_message_dynamic(raw_message, cfg)
                 logging.info(f"Parsed besked: {parsed_message}")
