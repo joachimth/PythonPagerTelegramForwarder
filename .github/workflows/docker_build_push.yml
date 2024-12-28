@@ -30,15 +30,15 @@ jobs:
           driver: docker-container
           driver-opts: image=moby/buildkit:latest
 
-  build_and_push_final_stage:
-    name: Build and Push Final Stage
+  build_and_push:
+    name: Build and Push Docker Images
     needs: prepare_environment
     runs-on: ubuntu-latest
     steps:
       - name: Set timestamp for Docker tags
         run: echo "TIMESTAMP=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
 
-      - name: Build and Push Docker Image
+      - name: Build and Push Docker Images
         uses: docker/build-push-action@v4
         with:
           context: .
