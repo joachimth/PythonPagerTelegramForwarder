@@ -28,7 +28,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Clone and build rtl-sdr
-RUN git clone git://git.osmocom.org/rtl-sdr.git && \
+RUN git clone https://github.com/joachimth/rtl-sdr.git && \
     cd rtl-sdr && mkdir build && cd build && \
     cmake ../ -DINSTALL_UDEV_RULES=ON && \
     make && make install && ldconfig
