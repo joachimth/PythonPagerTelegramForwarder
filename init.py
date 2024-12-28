@@ -58,14 +58,19 @@ def main():
                 return
 
         # Hovedprogram
-        logging.info("Starter hovedprogram: app.py")
-        if not run_script("app.py"):
-            logging.error("Hovedprogrammet fejlede.")
+        #logging.info("Starter hovedprogram: app.py")
+        #if not run_script("app.py"):
+        #    logging.error("Hovedprogrammet fejlede.")
         
         # message_receiver.py
         logging.info("Starter program: message_receiver.py")
         if not run_script("message_receiver.py"):
             logging.error("message_receiver.py fejlede.")
+
+        # message_parser.py - Start en enkelt gang lige nu. Ret i parser filen, for gentagende kontrol.
+        logging.info("Starter program: message_receiver.py")
+        if not run_script("message_receiver.py"):
+            logging.error("message_parser.py fejlede.")
 
 
     except Exception as e:

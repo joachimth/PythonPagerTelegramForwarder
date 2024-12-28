@@ -2,11 +2,16 @@ import sqlite3
 import logging
 import json
 import re
+import os
 from configparser import ConfigParser
+from telegram_sender import TelegramSender
 
 # Logger opsætning
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
-logger = logging.getLogger("message_parser")
+logging.basicConfig(
+    filename="messageparser.log",
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
 DB_PATH = "messages.db"
 
@@ -26,7 +31,7 @@ def extract_field(pattern, text, default=None):
         match = re.search(pattern, text)
         return match.group(1).strip() if match else default
     except Exception as e:
-        logger.warning(f"Fejl under parsing med mønster '{pattern}': {e}")
+        logging.warning(f"Fejl under parsing med mønster '{pattern}': {e}")
         return default
 
 def generate_google_maps_link(lat, long, adresse=None, postnr=None, by=None):
@@ -66,7 +71,7 @@ def parse_message_dynamic(message, cfg):
                 parsed[key] = any(pat in message for pat in patterns.split(", "))
 
     except Exception as e:
-        logger.error(f"Fejl under parsing af besked: {e}")
+        logging.error(f"Fejl under parsing af besked: {e}")
         parsed['error'] = True
 
     return parsed
@@ -84,9 +89,9 @@ def update_message_in_db(message_id, parsed_message):
                 WHERE id = ?
             """, (json.dumps(parsed_message), message_id))
             conn.commit()
-            logger.info(f"Besked ID {message_id} opdateret med parsed data.")
+            logging.info(f"Besked ID {message_id} opdateret med parsed data.")
     except sqlite3.Error as e:
-        logger.error(f"Fejl under opdatering af databasen: {e}")
+        logging.error(f"Fejl under opdatering af databasen: {e}")
 
 def process_unparsed_messages():
     """
@@ -102,16 +107,17 @@ def process_unparsed_messages():
             """)
             rows = cursor.fetchall()
 
-            logger.info(f"Fundet {len(rows)} beskeder, der skal parses.")
+            logging.info(f"Fundet {len(rows)} beskeder, der skal parses.")
 
             for message_id, raw_message in rows:
-                logger.info(f"Behandler besked ID {message_id}: {raw_message}")
+                logging.info(f"Behandler besked ID {message_id}: {raw_message}")
+                TelegramSender.send_message(f"{raw_message}")
                 parsed_message = parse_message_dynamic(raw_message, cfg)
-                logger.info(f"Parsed besked: {parsed_message}")
+                logging.info(f"Parsed besked: {parsed_message}")
                 update_message_in_db(message_id, parsed_message)
 
     except sqlite3.Error as e:
-        logger.error(f"Fejl under hentning af beskeder fra databasen: {e}")
+        logging.error(f"Fejl under hentning af beskeder fra databasen: {e}")
 
 if __name__ == "__main__":
     process_unparsed_messages()

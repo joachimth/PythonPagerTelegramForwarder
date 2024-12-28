@@ -4,11 +4,15 @@ import collections
 import logging
 import configparser
 import json
+import os
 from datetime import datetime
 
 # Logger opsætning
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
-logger = logging.getLogger("message_receiver")
+logging.basicConfig(
+    filename="messagereceiver.log",
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
 DB_PATH = "messages.db"
 
@@ -32,14 +36,16 @@ def insert_message_into_db(raw_message):
                 VALUES (?)
             """, (raw_message,))
             conn.commit()
-            logger.info(f"Rå besked gemt i databasen: {raw_message}")
+            logging.info(f"Rå besked gemt i databasen: {raw_message}")
     except sqlite3.Error as e:
-        logger.error(f"Fejl under indsættelse i databasen: {e}")
+        logging.error(f"Fejl under indsættelse i databasen: {e}")
 
 def start_message_receiver(cfg):
     """
     Starter beskedmodtagerprocessen og gemmer rå beskeder i databasen.
     """
+    logging.info(f"Starter besked modtageren")
+    
     prots = cfg.get('multimon-ng', 'prot').split()
     prots = ' -a '.join(prots)
     if prots:
@@ -62,7 +68,7 @@ def start_message_receiver(cfg):
         )
     )
 
-    logger.info(f"Kommando udført: {command}")
+    logging.info(f"Kommando udført: {command}")
 
     process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     decode_format = cfg.get('Encoding', 'encoding_format')
@@ -73,7 +79,7 @@ def start_message_receiver(cfg):
             if not output:
                 continue
 
-            logger.info(f"Rå output: {output}")
+            logging.info(f"Rå output: {output}")
             if "Alpha" not in output:
                 continue
 
@@ -90,15 +96,15 @@ def start_message_receiver(cfg):
             insert_message_into_db(raw_message)
 
     except Exception as e:
-        logger.error(f"Fejl under beskedmodtagelse: {e}")
+        logging.error(f"Fejl under beskedmodtagelse: {e}")
 
     finally:
         process.terminate()
-        logger.info("Message receiver-processen er afsluttet.")
+        logging.info("Message receiver-processen er afsluttet.")
 
 if __name__ == "__main__":
     try:
         cfg = load_config()
         start_message_receiver(cfg)
     except Exception as e:
-        logger.error(f"Kritisk fejl: {e}")
+        logging.error(f"Kritisk fejl: {e}")

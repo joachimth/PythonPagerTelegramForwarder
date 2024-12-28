@@ -3,8 +3,11 @@ import logging
 from pytgbot import Bot
 
 # Logger opsætning
-logger = logging.getLogger('telegram_sender')
-logger.setLevel(logging.INFO)
+logging.basicConfig(
+    filename="telegramsender.log",
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
 class TelegramSender:
     """
@@ -22,8 +25,8 @@ class TelegramSender:
         Sender en besked til den specificerede Telegram-chat.
         """
         try:
-            logger.info(f"Sender besked til Chat ID: {self.chat_id}")
+            logging.info(f"Sender besked til Chat ID: {self.chat_id}")
             self.bot.send_message(self.chat_id, message)
-            logger.info("Besked sendt.")
+            logging.info("Besked sendt.")
         except Exception as e:
-            logger.error(f"Fejl under afsendelse af besked: {e}")
+            logging.error(f"Fejl under afsendelse af besked: {e}")
