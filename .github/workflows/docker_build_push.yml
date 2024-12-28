@@ -27,30 +27,28 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-  pull_caches:
-    name: Pull Caches from DockerHub
+  build_builder_stage:
+    name: Build and Push Builder Stage
     needs: prepare_environment
     runs-on: ubuntu-latest
     steps:
-      - name: Pull builder cache from DockerHub
-        run: |
-          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/pythonpagertelegramforwarder:builder || echo "No builder cache found, proceeding without it."
+      - name: Check out the repository
+        uses: actions/checkout@v3
 
-      - name: Pull final cache from DockerHub
-        run: |
-          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/pythonpagertelegramforwarder:latest || echo "No final cache found, proceeding without it."
-
-  build_builder_stage:
-    name: Build Builder Stage
-    needs: pull_caches
-    runs-on: ubuntu-latest
-    steps:
       - name: Build Builder Stage
         run: |
           docker build \
             --target builder \
-            --cache-from ${{ secrets.DOCKERHUB_USERNAME }}/pythonpagertelegramforwarder:builder \
-            --tag builder:latest .
+            --tag ${{ secrets.DOCKERHUB_USERNAME }}/pythonpagertelegramforwarder:builder .
+
+      - name: Push Builder Stage
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/pythonpagertelegramforwarder:builder
 
   build_and_push_final_stage:
     name: Build and Push Final Stage
