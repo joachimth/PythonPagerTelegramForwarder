@@ -74,7 +74,7 @@ def start_message_receiver(cfg):
     decode_format = cfg.get('Encoding', 'encoding_format')
 
     try:
-        while True
+        while True:
             output = process.stdout.readline()
             #if not output:
                 #continue
