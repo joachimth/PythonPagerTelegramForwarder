@@ -75,17 +75,18 @@ def start_message_receiver(cfg):
 
     try:
         while True:
-            output = process.stdout.readline().strip()
+            output = process.stdout.readline()
+            logging.info(f"Rå output A: {output}")
             if not output:
                 continue
 
-            logging.info(f"Rå output: {output}")
-            if "Alpha" not in output:
-                continue
+            #logging.info(f"Rå output B: {output}")
+            #if "Alpha" not in output:
+                #continue
 
             output = output.replace("<NUL>", "").strip()
-            if output in recent_messages:
-                continue
+            #if output in recent_messages:
+                #continue
 
             recent_messages.append(output)
             raw_message = output.split("Alpha:", 1)[1].strip()
