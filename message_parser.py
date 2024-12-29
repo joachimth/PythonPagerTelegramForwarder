@@ -97,6 +97,9 @@ def process_unparsed_messages():
     """
     Henter og parser beskeder, der endnu ikke er blevet parsed.
     """
+    
+    logging.info(f"Behandler ubehandlede beskeder")
+    
     cfg = load_config()
     try:
         with sqlite3.connect(DB_PATH) as conn:
