@@ -76,10 +76,9 @@ def start_message_receiver(cfg):
     try:
         while True:
             output = process.stdout.readline()
-            logging.info(f"Rå output A: {output}")
             if not output:
                 continue
-
+            logging.info(f"Rå output A: {output}")
             #logging.info(f"Rå output B: {output}")
             #if "Alpha" not in output:
                 #continue
