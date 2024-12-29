@@ -74,23 +74,25 @@ def start_message_receiver(cfg):
     decode_format = cfg.get('Encoding', 'encoding_format')
 
     try:
-        while True:
+        while True
             output = process.stdout.readline()
-            if not output:
-                continue
-            logging.info(f"Rå output A: {output}")
-            #logging.info(f"Rå output B: {output}")
-            #if "Alpha" not in output:
+            #if not output:
                 #continue
 
-            output = output.replace("<NUL>", "").strip()
+            #logging.info(f"Rå output B: {output}")
+            if "Alpha" not in output:
+                continue
+            
+            logging.info(f"Rå output A: {output}")
+            
+            output = output.replace("<NUL>", "")
             #if output in recent_messages:
                 #continue
 
             recent_messages.append(output)
-            raw_message = output.split("Alpha:", 1)[1].strip()
-            if len(raw_message) < int(cfg.get('multimon-ng', 'min_len')):
-                continue
+            raw_message = output.split("Alpha:", 1)[1]
+            #if len(raw_message) < int(cfg.get('multimon-ng', 'min_len')):
+                #continue
 
             # Gem rå besked i databasen
             insert_message_into_db(raw_message)
