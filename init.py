@@ -49,8 +49,8 @@ def run_message_parser():
     logging.info("Starter program: message_parser.py")
     while True:
         if not run_script("message_parser.py"):
-            #logging.error("message_parser.py fejlede.")
-        else:
+            logging.error("message_parser.py fejlede.")
+        #else:
             #logging.info("message_parser.py afsluttede korrekt.")
         # Kontrollér hvert 30. sekund for nye beskeder at parse
         #logging.info("Venter 30 sekunder før næste parsing.")
