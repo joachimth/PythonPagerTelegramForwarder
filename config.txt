@@ -20,7 +20,7 @@ squelch_level = 0
 # Indstillinger for multimon-ng
 input_file = /dev/stdin
 pocsag_charset = DK
-prot = POCSAG512, POCSAG1200, POCSAG2400
+prot = POCSAG512 POCSAG1200 POCSAG2400
 min_len = 1
 
 [kal]
