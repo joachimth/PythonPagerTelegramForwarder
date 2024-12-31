@@ -8,7 +8,6 @@ freq = 171.300M
 
 [rtl_fm]
 # RTL-SDR-indstillinger
-# Tidligere ppmerror 32.
 device_index = 0
 sample_rate = 22050
 enable_option = -E dc
@@ -66,3 +65,24 @@ specifik_bygningsbrand = Bygn.brand-Villa/Rækkehus
 
 # Positioneringsdata
 positioneringsdata = ?RSE_1/1
+
+[Defaults]
+# Standardindstillinger for parsing
+default_stednavn = Ukendt Sted
+default_adresse = Ukendt Adresse
+default_postnr = 0000
+default_by = Ukendt By
+default_alarmtype = Ukendt Alarmtype
+
+[DummyMessages]
+# Dummy beskeder til test
+message_1 = (A)M+V<CR><LF>Naturbrand-Halmstak<CR><LF>Seerdrupvej 25<CR><LF>4200 Slagelse<CR><LF>ild i halmstak. mange halmballer. tlf 5163-6114<NUL>
+message_2 = (S)M<CR><LF>Naturbrand-Mindre brand<CR><LF>Pedersborg Torv 14<CR><LF>4180 Sorø<CR><LF>Det gløder fra træ.<NUL>
+message_3 = DAGENS PRØVE TIL ISL
+message_4 = (A)M+V<CR><LF>Naturbrand-Halmstak K: 1<CR><LF>Seerdrupvej 25<CR><LF>4200 Slagelse<CR><LF>ild i halmstak. mange halmballer. tlf 5163-6114<CR><LF>Job-nr: 47148623<CR><LF>?RSE_1/1_0_N55.20.53,5_E011.20.22,2<NUL>
+
+[LogSettings]
+# Logindstillinger for applikationen
+log_level = INFO
+log_to_file = true
+log_file_path = logs/application.log
