@@ -2,16 +2,19 @@ import sqlite3
 import logging
 import json
 import re
-import os
 from configparser import ConfigParser
-from telegram_sender import TelegramSender
 
 # Logger opsætning
+LOG_FILE = "message_parser.log"
 logging.basicConfig(
-    filename="messageparser.log",
     level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s"
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.FileHandler(LOG_FILE),  # Log til fil
+        logging.StreamHandler()        # Log til konsol
+    ]
 )
+logger = logging.getLogger("message_parser")
 
 DB_PATH = "messages.db"
 
@@ -23,55 +26,51 @@ def load_config(filepath='config.txt'):
     cfg.read(filepath)
     return cfg
 
-def extract_field(pattern, text, default=None):
-    """
-    Ekstraherer et felt baseret på et regex-mønster.
-    """
-    try:
-        match = re.search(pattern, text)
-        return match.group(1).strip() if match else default
-    except Exception as e:
-        logging.warning(f"Fejl under parsing med mønster '{pattern}': {e}")
-        return default
-
-def generate_google_maps_link(lat, long, adresse=None, postnr=None, by=None):
-    """
-    Genererer Google Maps link baseret på koordinater eller adresseoplysninger.
-    """
-    if lat and long:
-        return f"https://www.google.com/maps?q={lat},{long}"
-    elif adresse or postnr or by:
-        adresse_parts = [adresse, postnr, by]
-        adresse_encoded = "+".join([part.replace(" ", "+") for part in adresse_parts if part])
-        return f"https://www.google.com/maps?q={adresse_encoded}"
-    return ""
-
 def parse_message_dynamic(message, cfg):
     """
-    Parser en besked dynamisk baseret på regler og mønstre i config.txt.
+    Parser en besked dynamisk baseret på regler defineret i config.txt.
     """
     parsed = {"raw_message": message}
     try:
-        # Ekstraktion baseret på faste felter
-        parsed['stednavn'] = extract_field(r"Sted:\s*(.*?)<", message)
-        parsed['adresse'] = extract_field(r"Adresse:\s*(.*?)<", message)
-        parsed['postnr'] = extract_field(r"Postnr:\s*(\d{4})", message)
-        parsed['by'] = extract_field(r"By:\s*(.*?)<", message)
-        parsed['lat'] = extract_field(r"Lat:\s*([\d.]+)", message)
-        parsed['long'] = extract_field(r"Long:\s*([\d.]+)", message)
+        # Fjern <CR><LF> og <NUL>
+        cleaned_message = message.replace("<CR><LF>", "\n").replace("<NUL>", "").strip()
 
-        # Generer Google Maps link
-        parsed['linktilgooglemaps'] = generate_google_maps_link(
-            parsed['lat'], parsed['long'], parsed['adresse'], parsed['postnr'], parsed['by']
-        )
+        # Gennemgå dynamiske regler fra config.txt
+        if "MessageParsing" in cfg.sections():
+            for key, pattern in cfg.items("MessageParsing"):
+                match = re.search(pattern, cleaned_message)
+                if match:
+                    parsed[key] = match.group(1).strip() if match.groups() else True
+                else:
+                    parsed[key] = None
 
-        # Dynamisk parsing fra config
-        for key, patterns in cfg.items("MessageParsing"):
-            if key.startswith("alarmtype") or key.startswith("alarmkald") or key.startswith("specifik"):
-                parsed[key] = any(pat in message for pat in patterns.split(", "))
+        # Eksempel på manuelle regex-analyser for ekstra felter
+        parsed['stednavn'] = parsed.get('stednavn') or re.search(r"Alpha:\s+\([A-Z]\)M\+V\n([^\n]+)", cleaned_message)
+        parsed['stednavn'] = parsed['stednavn'].group(1) if parsed['stednavn'] else None
+
+        parsed['adresse'] = parsed.get('adresse') or re.search(r"\n([^,]+)\n", cleaned_message)
+        parsed['adresse'] = parsed['adresse'].group(1) if parsed['adresse'] else None
+
+        parsed['postnr'] = parsed.get('postnr') or re.search(r"\n(\d{4})\s", cleaned_message)
+        parsed['postnr'] = parsed['postnr'].group(1) if parsed['postnr'] else None
+
+        parsed['by'] = parsed.get('by') or re.search(r"\n\d{4}\s([^\n]+)", cleaned_message)
+        parsed['by'] = parsed['by'].group(1) if parsed['by'] else None
+
+        parsed['detaljer'] = parsed.get('detaljer') or re.search(r"\nild i.*", cleaned_message)
+        parsed['detaljer'] = parsed['detaljer'].group(0).strip() if parsed['detaljer'] else None
+
+        parsed['jobnr'] = parsed.get('jobnr') or re.search(r"Job-nr:\s*(\d+)", cleaned_message)
+        parsed['jobnr'] = parsed['jobnr'].group(1) if parsed['jobnr'] else None
+
+        parsed['koordinater'] = parsed.get('koordinater') or re.search(r"N(\d+.\d+),\s*E(\d+.\d+)", cleaned_message)
+        if parsed['koordinater']:
+            parsed['latitude'], parsed['longitude'] = parsed['koordinater'].groups()
+        else:
+            parsed['latitude'], parsed['longitude'] = None, None
 
     except Exception as e:
-        logging.error(f"Fejl under parsing af besked: {e}")
+        logger.error(f"Fejl under parsing: {e}")
         parsed['error'] = True
 
     return parsed
@@ -89,19 +88,39 @@ def update_message_in_db(message_id, parsed_message):
                 WHERE id = ?
             """, (json.dumps(parsed_message), message_id))
             conn.commit()
-            logging.info(f"Besked ID {message_id} opdateret med parsed data.")
+            logger.info(f"Besked ID {message_id} opdateret med parsed data.")
     except sqlite3.Error as e:
-        logging.error(f"Fejl under opdatering af databasen: {e}")
+        logger.error(f"Fejl under opdatering af databasen: {e}")
+
+def insert_dummy_messages():
+    """
+    Tilføjer dummy-beskeder til databasen for testformål.
+    """
+    dummy_messages = [
+        "(A)M+V<CR><LF>Naturbrand-Halmstak<CR><LF>Seerdrupvej 25<CR><LF>4200 Slagelse<CR><LF>ild i halmstak. mange halmballer. tlf 5163-6114<NUL>",
+        "(S)M<CR><LF>Naturbrand-Mindre brand<CR><LF>Pedersborg Torv 14<CR><LF>4180 Sorø<CR><LF>Det gløder fra træ.<NUL>",
+        "DAGENS PRØVE TIL ISL",
+        "(A)M+V<CR><LF>Naturbrand-Halmstak K: 1<CR><LF>Seerdrupvej 25<CR><LF>4200 Slagelse<CR><LF>ild i halmstak. mange halmballer. tlf 5163-6114<CR><LF>Job-nr: 47148623<CR><LF>?RSE_1/1_0_N55.20.53,5_E011.20.22,2<NUL>"
+    ]
+    try:
+        with sqlite3.connect(DB_PATH) as conn:
+            cursor = conn.cursor()
+            for message in dummy_messages:
+                cursor.execute("""
+                    INSERT INTO messages (raw_message)
+                    VALUES (?)
+                """, (message,))
+            conn.commit()
+            logger.info("Dummy-beskeder tilføjet til databasen.")
+    except sqlite3.Error as e:
+        logger.error(f"Fejl under indsættelse af dummy-beskeder: {e}")
 
 def process_unparsed_messages():
     """
     Henter og parser beskeder, der endnu ikke er blevet parsed.
     """
-    
-    logging.info(f"Behandler ubehandlede beskeder")
-    
-    cfg = load_config()
     try:
+        cfg = load_config()
         with sqlite3.connect(DB_PATH) as conn:
             cursor = conn.cursor()
             cursor.execute("""
@@ -110,24 +129,17 @@ def process_unparsed_messages():
             """)
             rows = cursor.fetchall()
 
-            logging.info(f"Fundet {len(rows)} beskeder, der skal parses.")
-            
-            telegram_sender = TelegramSender()
+            logger.info(f"Fundet {len(rows)} beskeder, der skal parses.")
 
             for message_id, raw_message in rows:
-                logging.info(f"Behandler besked ID {message_id}: {raw_message}")
-
-                try:
-                    telegram_sender.send_message(raw_message)
-                except Exception as e:
-                    logging.error(f"Fejl under forsøg på at sende af besked: {raw_message}")
-                
+                logger.info(f"Behandler besked ID {message_id}: {raw_message}")
                 parsed_message = parse_message_dynamic(raw_message, cfg)
-                logging.info(f"Parsed besked: {parsed_message}")
+                logger.info(f"Parsed besked: {parsed_message}")
                 update_message_in_db(message_id, parsed_message)
 
     except sqlite3.Error as e:
-        logging.error(f"Fejl under hentning af beskeder fra databasen: {e}")
+        logger.error(f"Fejl under hentning af beskeder fra databasen: {e}")
 
 if __name__ == "__main__":
+    insert_dummy_messages()  # Tilføjer dummy-beskeder til databasen
     process_unparsed_messages()
