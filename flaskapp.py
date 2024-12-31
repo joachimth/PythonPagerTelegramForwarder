@@ -96,7 +96,7 @@ def latest_messages_json():
                 SELECT id, timestamp, raw_message, parsed_fields
                 FROM messages
                 ORDER BY id DESC
-                LIMIT 10
+                LIMIT 200
             """)
             rows = cursor.fetchall()
 
