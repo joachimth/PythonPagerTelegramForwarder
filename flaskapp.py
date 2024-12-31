@@ -86,33 +86,41 @@ def admin():
     return render_template("admin.html", config=config, log_files=log_files)
 
 # Seneste beskeder JSON
-@app.route("/latest_messages_json")
+@app.route('/latest_messages_json', methods=['GET'])
 @login_required
 def latest_messages_json():
+    """
+    API-endpoint til at hente de seneste beskeder.
+    """
     try:
         with sqlite3.connect(DB_PATH) as conn:
             cursor = conn.cursor()
             cursor.execute("""
-                SELECT id, timestamp, raw_message, parsed_fields
+                SELECT id, raw_message, parsed_fields, timestamp
                 FROM messages
                 ORDER BY id DESC
                 LIMIT 200
             """)
             rows = cursor.fetchall()
 
-            messages = [
-                {
-                    "id": row[0],
-                    "timestamp": row[1],
-                    "raw_message": row[2],
-                    "parsed_fields": json.loads(row[3]) if row[3] else None
-                }
-                for row in rows
-            ]
-            return jsonify({"messages": messages})
-    except sqlite3.Error as e:
-        logger.error(f"Database error: {e}")
+        messages = []
+        for row in rows:
+            parsed_fields = json.loads(row[2]) if row[2] else {}
+            messages.append({
+                "id": row[0],
+                "raw_message": row[1],
+                "parsed_fields": parsed_fields,
+                "timestamp": row[3]
+            })
+
+        return jsonify({"messages": messages})
+
+    except Exception as e:
+        logger.error(f"Error retrieving messages: {e}")
         return jsonify({"error": "Could not retrieve messages."}), 500
+
+
+
 
 # Seneste beskeder side
 @app.route("/latest_messages")
