@@ -38,6 +38,13 @@
 
 
 <script>
+
+    function decodeHtmlEntities(str) {
+    const textArea = document.createElement('textarea');
+    textArea.innerHTML = str;
+    return textArea.value;
+    }
+    
     function fetchMessages() {
         fetch('/latest_messages_json')
             .then(response => response.json())
