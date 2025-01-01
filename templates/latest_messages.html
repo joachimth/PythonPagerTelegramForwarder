@@ -1,24 +1,16 @@
 {% include 'header.html' %}
 <div class="container mt-5">
     <div class="card">
-        <div class="card-header">
+        <div class="card-header d-flex justify-content-between align-items-center">
             <h3>Seneste Beskeder</h3>
+            <button class="btn btn-outline-primary" id="refresh-btn">Opdater</button>
         </div>
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table align-middle table-striped table-bordered">
                     <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Tidspunkt</th>
-                            <th>Rå besked</th>
-                            <th>Parsed Fields</th>
-                            <th>adresse</th>
-                            <th>alarmkald_brand</th>
-                            <th>alarmkald_isl</th>
-                            <th>stednavn</th>
-                            <th>by</th>
-                            <th>linktilgooglemaps</th>
+                        <tr id="table-headers">
+                            <!-- Dynamisk genererede kolonneoverskrifter -->
                         </tr>
                     </thead>
                     <tbody id="messages-table">
@@ -26,27 +18,63 @@
                     </tbody>
                 </table>
             </div>
+            <nav>
+                <ul class="pagination justify-content-center" id="pagination">
+                    <!-- Pagination-links indsættes her -->
+                </ul>
+            </nav>
         </div>
     </div>
-
 </div>
 
 <!-- Back to Dashboard -->
-<div class="text-center">
+<div class="text-center mt-3">
     <a href="/admin" class="btn btn-outline-secondary">Back to Dashboard</a>
 </div>
 
-
 <script>
+    let currentPage = 1; // Start på side 1
+    const messagesPerPage = 20; // Antal beskeder per side
 
     function decodeHtmlEntities(str) {
-    const textArea = document.createElement('textarea');
-    textArea.innerHTML = str;
-    return textArea.value;
+        const textArea = document.createElement('textarea');
+        textArea.innerHTML = str;
+        return textArea.value;
     }
-    
+
+    function generateTableHeaders(fields) {
+        const headerRow = document.getElementById('table-headers');
+        headerRow.innerHTML = ''; // Rens eksisterende headers
+        fields.forEach(field => {
+            const th = document.createElement('th');
+            th.textContent = field.charAt(0).toUpperCase() + field.slice(1); // Formatér tekst
+            headerRow.appendChild(th);
+        });
+    }
+
+    function generatePagination(totalMessages) {
+        const pagination = document.getElementById('pagination');
+        pagination.innerHTML = ''; // Rens tidligere pagination-links
+        const totalPages = Math.ceil(totalMessages / messagesPerPage);
+
+        for (let i = 1; i <= totalPages; i++) {
+            const li = document.createElement('li');
+            li.classList.add('page-item', i === currentPage ? 'active' : '');
+            li.innerHTML = `<a href="#" class="page-link" data-page="${i}">${i}</a>`;
+            pagination.appendChild(li);
+        }
+
+        document.querySelectorAll('.page-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                currentPage = parseInt(e.target.getAttribute('data-page'));
+                fetchMessages();
+            });
+        });
+    }
+
     function fetchMessages() {
-        fetch('/latest_messages_json')
+        fetch(`/latest_messages_json?page=${currentPage}&limit=${messagesPerPage}`)
             .then(response => response.json())
             .then(data => {
                 const table = document.getElementById('messages-table');
@@ -54,32 +82,46 @@
 
                 if (data.messages.length === 0) {
                     const row = document.createElement('tr');
-                    row.innerHTML = '<td colspan="4" class="text-center">Ingen beskeder fundet.</td>';
+                    row.innerHTML = '<td colspan="100%" class="text-center">Ingen beskeder fundet.</td>';
                     table.appendChild(row);
                 } else {
+                    // Dynamisk genererede kolonner baseret på felter
+                    const fields = Object.keys(data.messages[0].parsed_fields || {});
+                    fields.unshift('id', 'timestamp', 'raw_message'); // Tilføj standardfelter
+                    generateTableHeaders(fields);
+
                     data.messages.forEach(message => {
                         const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${message.id}</td>
-                            <td>${message.timestamp}</td>
-                            <td>${message.raw_message}</td>
-                            <td>${message.parsed_fields.adresse}</td>
-                            <td>${message.parsed_fields.alarmkald_brand}</td>
-                            <td>${message.parsed_fields.alarmkald_isl}</td>
-                            <td>${message.parsed_fields.stednavn}</td>
-                            <td>${message.parsed_fields.by}</td>
-                            <td>${message.parsed_fields.linktilgooglemaps}</td>
-                        `;
+                        fields.forEach(field => {
+                            const cell = document.createElement('td');
+                            if (field === 'raw_message') {
+                                cell.textContent = decodeHtmlEntities(message.raw_message);
+                            } else {
+                                cell.textContent = message[field] || message.parsed_fields[field] || 'N/A';
+                            }
+                            row.appendChild(cell);
+                        });
                         table.appendChild(row);
                     });
+
+                    generatePagination(data.total);
                 }
             })
             .catch(error => {
                 console.error('Error fetching messages:', error);
+                const table = document.getElementById('messages-table');
+                table.innerHTML = `
+                    <tr>
+                        <td colspan="100%" class="text-center text-danger">
+                            Fejl under hentning af beskeder. Prøv igen senere.
+                        </td>
+                    </tr>
+                `;
             });
     }
 
+    document.getElementById('refresh-btn').addEventListener('click', fetchMessages);
+
     fetchMessages(); // Hent beskeder ved sideindlæsning
-    setInterval(fetchMessages, 5000); // Opdater hvert 5. sekund
 </script>
 {% include 'footer.html' %}
