@@ -10,8 +10,8 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler(LOG_FILE),
-        logging.StreamHandler()
+        logging.FileHandler(LOG_FILE),  # Log til fil
+        logging.StreamHandler()        # Log til konsol
     ]
 )
 logger = logging.getLogger("message_parser")
@@ -26,30 +26,52 @@ def load_config(filepath='config.txt'):
     cfg.read(filepath)
     return cfg
 
-def get_db_connection():
-    """
-    Opretter en SQLite-forbindelse med timeout for at undgå låseproblemer.
-    """
-    return sqlite3.connect(DB_PATH, timeout=10)
-
 def parse_message_dynamic(message, cfg):
     """
-    Parser en besked dynamisk baseret på regler i config.txt.
+    Parser en besked dynamisk baseret på regler defineret i config.txt.
     """
     parsed = {"raw_message": message}
     try:
         # Fjern <CR><LF> og <NUL>
         cleaned_message = message.replace("<CR><LF>", "\n").replace("<NUL>", "").strip()
 
-        # Gennemgå regler fra config.txt
+        # Gennemgå dynamiske regler fra config.txt
         if "MessageParsing" in cfg.sections():
             for key, pattern in cfg.items("MessageParsing"):
-                try:
-                    match = re.search(pattern, cleaned_message)
-                    parsed[key] = match.group(1).strip() if match else None
-                except re.error as e:
-                    logger.error(f"Fejl i regex for {key}: {e}")
+                match = re.search(pattern, cleaned_message)
+                if match:
+                    parsed[key] = match.group(0).strip() if match.groups() else True
+                else:
                     parsed[key] = None
+
+        # Adresse og stednavn parsing
+        parsed['adresse'] = re.search(r"\n([^,]+)\n", cleaned_message)
+        parsed['adresse'] = parsed['adresse'].group(1).strip() if parsed['adresse'] else None
+
+        parsed['stednavn'] = re.search(r"^\(.\)M[+V]*\n(.*?)\n", cleaned_message)
+        parsed['stednavn'] = parsed['stednavn'].group(1).strip() if parsed['stednavn'] else None
+
+        # Postnummer og by
+        parsed['postnr'] = re.search(r"\n(\d{4})\s", cleaned_message)
+        parsed['postnr'] = parsed['postnr'].group(1).strip() if parsed['postnr'] else None
+
+        parsed['by'] = re.search(r"\n\d{4}\s([^\n]+)", cleaned_message)
+        parsed['by'] = parsed['by'].group(1).strip() if parsed['by'] else None
+
+        # GPS-koordinater
+        gps_match = re.search(r"N(\d+\.\d+),\s*E(\d+\.\d+)", cleaned_message)
+        if gps_match:
+            parsed['latitude'], parsed['longitude'] = gps_match.groups()
+        else:
+            parsed['latitude'], parsed['longitude'] = None, None
+
+        # Link til Google Maps
+        if parsed['latitude'] and parsed['longitude']:
+            parsed['linktilgooglemaps'] = f"https://www.google.com/maps?q={parsed['latitude']},{parsed['longitude']}"
+        elif parsed['adresse'] and parsed['postnr'] and parsed['by']:
+            parsed['linktilgooglemaps'] = f"https://www.google.com/maps?q={parsed['adresse']},+{parsed['postnr']}+{parsed['by']}"
+        else:
+            parsed['linktilgooglemaps'] = None
 
     except Exception as e:
         logger.error(f"Fejl under parsing: {e}")
@@ -62,7 +84,7 @@ def update_message_in_db(message_id, parsed_message):
     Opdaterer en besked i databasen med de parsed felter.
     """
     try:
-        with get_db_connection() as conn:
+        with sqlite3.connect(DB_PATH) as conn:
             cursor = conn.cursor()
             cursor.execute("""
                 UPDATE messages
@@ -70,7 +92,7 @@ def update_message_in_db(message_id, parsed_message):
                 WHERE id = ?
             """, (json.dumps(parsed_message), message_id))
             conn.commit()
-            logger.info(f"Besked ID {message_id} markeret som opdateret.")
+            logger.info(f"Besked ID {message_id} opdateret med parsed data.")
     except sqlite3.Error as e:
         logger.error(f"Fejl under opdatering af databasen: {e}")
 
@@ -80,7 +102,7 @@ def process_unparsed_messages():
     """
     try:
         cfg = load_config()
-        with get_db_connection() as conn:
+        with sqlite3.connect(DB_PATH) as conn:
             cursor = conn.cursor()
             cursor.execute("""
                 SELECT id, raw_message FROM messages
