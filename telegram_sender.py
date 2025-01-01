@@ -26,6 +26,9 @@ class TelegramSender:
         self.bot = Bot(self.api_key)
 
     def send_message(self, message):
+        """
+        Sender en besked til Telegram.
+        """
         try:
             self.bot.send_message(self.chat_id, message)
             logging.info("Besked sendt til Telegram.")
@@ -39,22 +42,29 @@ def process_unsent_messages():
     Finder og sender beskeder, der ikke tidligere er sendt til Telegram.
     """
     sender = TelegramSender()
-    with sqlite3.connect(DB_PATH) as conn:
-        cursor = conn.cursor()
-        cursor.execute("""
-            SELECT id, raw_message FROM messages
-            WHERE sent_to_telegram = 0
-        """)
-        unsent_messages = cursor.fetchall()
+    try:
+        with sqlite3.connect(DB_PATH) as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT id, raw_message FROM messages
+                WHERE sent_to_telegram = 0
+            """)
+            unsent_messages = cursor.fetchall()
 
-        for message_id, raw_message in unsent_messages:
-            if sender.send_message(raw_message):
-                cursor.execute("""
-                    UPDATE messages
-                    SET sent_to_telegram = 1
-                    WHERE id = ?
-                """, (message_id,))
-        conn.commit()
+            logging.info(f"Fundet {len(unsent_messages)} beskeder, der skal sendes.")
+
+            for message_id, raw_message in unsent_messages:
+                logging.info(f"Sender besked ID {message_id}: {raw_message}")
+                if sender.send_message(raw_message):
+                    cursor.execute("""
+                        UPDATE messages
+                        SET sent_to_telegram = 1
+                        WHERE id = ?
+                    """, (message_id,))
+            conn.commit()
+            logging.info("Alle beskeder i køen er behandlet.")
+    except Exception as e:
+        logging.error(f"Fejl under behandling af beskeder: {e}")
 
 if __name__ == "__main__":
     process_unsent_messages()
