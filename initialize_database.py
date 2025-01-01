@@ -36,7 +36,8 @@ def initialize_database():
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
         raw_message TEXT NOT NULL,
-        parsed_fields TEXT
+        parsed_fields TEXT,
+        sent_to_telegram INTEGER DEFAULT 0
     )
     """)
 
