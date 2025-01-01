@@ -13,9 +13,11 @@
 <body class="light-mode">
     <header class="header border-bottom">
         
-        <!-- Logo -->
+        <!-- Logo with Link -->
         <div>
-            <img id="logo" src="{{ url_for('static', filename='logo.png') }}" alt="Logo">
+            <a href="{{ url_for('home') }}"> <!-- Link til hovedsiden -->
+                <img id="logo" src="{{ url_for('static', filename='logo.png') }}" alt="Logo">
+            </a>
         </div>
         
         <!-- Titel -->
