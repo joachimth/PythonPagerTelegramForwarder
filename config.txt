@@ -34,22 +34,22 @@ dk_format_not_in_use = iso-8859-1
 
 [MessageParsing]
 # Alarmtyper
-alarmtype_kritisk = (K)M
-alarmtype_seriøs = (S)M+V
-alarmtype_lavrisiko = (L)M+V
-alarmtype_højrisiko = (A)M+V+P
+alarmtype_kritisk = \(K\)M
+alarmtype_seriøs = \(S\)M\+V
+alarmtype_lavrisiko = \(L\)M\+V
+alarmtype_højrisiko = \(A\)M\+V\+P
 
 # Alarmkald
 alarmkald_politi = P, Politiet
-alarmkald_brand = ABA
+alarmkald_brand = ABA, Brand, Naturbrand
 alarmkald_isl = ISL
-alarmkald_medicin = (A)M, (L)M
-alarmkald_vagt = V
-alarmkald_specialrespons = SPR + VTVG
+alarmkald_medicin = \(A\)M, \(L\)M, Medicin
+alarmkald_vagt = V, Vagt
+alarmkald_specialrespons = SPR, SPR\ \+\ VTVG
 
 # Bygningstyper
 bygningstype_rækkehus = Villa, Rækkehus
-bygningstype_erhverv = Erhverv, ApS, A/S
+bygningstype_erhverv = Erhverv, ApS, A/S, Industri, Lager
 
 # Biltyper
 biltype_a_sprøjte = A-sprøjte
@@ -59,12 +59,16 @@ biltype_stige = Stige
 biltype_vtvg = VTVG
 
 # Specifikke hændelser
-specifik_brandalarm = ABA
+specifik_brandalarm = ABA, Brandalarm, Alarm
 specifik_gasledningsbrud = Gas-Ledningsbrud, ej antændt
-specifik_bygningsbrand = Bygn.brand-Villa/Rækkehus
+specifik_bygningsbrand = Bygn.brand, Villa, Rækkehus
+specifik_dagens_prøve = DAGENS PRØVE
 
 # Positioneringsdata
-positioneringsdata = ?RSE_1/1
+positioneringsdata = \?RSE_1/1, GPS, N\d{2}\.\d{2}\.\d{2}, E\d{2}\.\d{2}\.\d{2}
+
+# Testbeskeder og andre
+teknisk_test = Teknik test, Test besked, Teknik besked
 
 [Defaults]
 # Standardindstillinger for parsing
