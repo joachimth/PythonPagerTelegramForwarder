@@ -1,6 +1,28 @@
 import sqlite3
+from configparser import ConfigParser
+import logging
+
+# Logger opsætning
+LOG_FILE = "initialize_database.log"
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.FileHandler(LOG_FILE),  # Log til fil
+        logging.StreamHandler()        # Log til konsol
+    ]
+)
+logger = logging.getLogger("initialize_database")
 
 DB_PATH = "messages.db"
+
+def load_config(filepath='config.txt'):
+    """
+    Indlæser konfigurationsindstillinger fra config.txt.
+    """
+    cfg = ConfigParser()
+    cfg.read(filepath)
+    return cfg
 
 def initialize_database():
     """
@@ -20,25 +42,36 @@ def initialize_database():
 
     conn.commit()
     conn.close()
+    logger.info("Databasen er blevet initialiseret.")
 
-def insert_test_data():
+def insert_dummy_messages():
     """
-    Indsætter testdata i databasen for at sikre, at der er nogle beskeder at arbejde med.
+    Indsætter dummy-beskeder fra config.txt i databasen.
     """
-    test_data = [
-        {"raw_message": "Test besked 1", "parsed_fields": None},
-        {"raw_message": "Test besked 2", "parsed_fields": None},
-    ]
+    cfg = load_config()
+
+    # Tjek om dummy-data er aktiveret
+    if not cfg.getboolean("DummyData", "enable_dummy_data", fallback=False):
+        logger.info("Dummy-beskeder er deaktiveret i config.txt.")
+        return
+
+    dummy_messages = cfg.get("DummyData", "dummy_messages", fallback="").split("\n")
+    dummy_messages = [msg.strip() for msg in dummy_messages if msg.strip()]
+
+    if not dummy_messages:
+        logger.info("Ingen dummy-beskeder fundet i config.txt.")
+        return
+
     with sqlite3.connect(DB_PATH) as conn:
         cursor = conn.cursor()
-        for data in test_data:
+        for message in dummy_messages:
             cursor.execute("""
-                INSERT INTO messages (raw_message, parsed_fields)
-                VALUES (?, ?)
-            """, (data["raw_message"], data["parsed_fields"]))
+                INSERT INTO messages (raw_message)
+                VALUES (?)
+            """, (message,))
         conn.commit()
-    print("Testdata indsat i databasen.")
+    logger.info("Dummy-beskeder er blevet indsat i databasen.")
 
 if __name__ == "__main__":
     initialize_database()
-    insert_test_data()
+    insert_dummy_messages()
