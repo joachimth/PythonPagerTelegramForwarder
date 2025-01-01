@@ -2,7 +2,9 @@ import threading
 import logging
 import configparser
 import os
+from time import sleep
 from script_runner import run_script
+from telegram_sender import TelegramSender
 
 # Logger opsætning
 logging.basicConfig(
