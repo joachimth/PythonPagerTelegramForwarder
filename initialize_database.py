@@ -1,16 +1,12 @@
 import sqlite3
-from configparser import ConfigParser
 import logging
+from configparser import ConfigParser
 
 # Logger opsætning
-LOG_FILE = "initialize_database.log"
 logging.basicConfig(
+    filename="initialize_database.log",
     level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.FileHandler(LOG_FILE),  # Log til fil
-        logging.StreamHandler()        # Log til konsol
-    ]
+    format="%(asctime)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger("initialize_database")
 
@@ -43,36 +39,27 @@ def initialize_database():
 
     conn.commit()
     conn.close()
-    logger.info("Databasen er blevet initialiseret.")
+    logger.info("Database initialiseret.")
 
-def insert_dummy_messages():
+def insert_dummy_data(cfg):
     """
-    Indsætter dummy-beskeder fra config.txt i databasen.
+    Indsætter dummy-data i databasen, hvis det er aktiveret i config.txt.
     """
-    cfg = load_config()
+    if cfg.getboolean("DummyData", "enable_dummy_data", fallback=False):
+        dummy_messages = cfg.get("DummyData", "dummy_messages", fallback="").split("\n")
+        dummy_messages = [msg.strip() for msg in dummy_messages if msg.strip()]
 
-    # Tjek om dummy-data er aktiveret
-    if not cfg.getboolean("DummyData", "enable_dummy_data", fallback=False):
-        logger.info("Dummy-beskeder er deaktiveret i config.txt.")
-        return
-
-    dummy_messages = cfg.get("DummyData", "dummy_messages", fallback="").split("\n")
-    dummy_messages = [msg.strip() for msg in dummy_messages if msg.strip()]
-
-    if not dummy_messages:
-        logger.info("Ingen dummy-beskeder fundet i config.txt.")
-        return
-
-    with sqlite3.connect(DB_PATH) as conn:
-        cursor = conn.cursor()
-        for message in dummy_messages:
-            cursor.execute("""
-                INSERT INTO messages (raw_message)
-                VALUES (?)
-            """, (message,))
-        conn.commit()
-    logger.info("Dummy-beskeder er blevet indsat i databasen.")
+        with sqlite3.connect(DB_PATH) as conn:
+            cursor = conn.cursor()
+            for message in dummy_messages:
+                cursor.execute("""
+                    INSERT INTO messages (raw_message)
+                    VALUES (?)
+                """, (message,))
+            conn.commit()
+        logger.info(f"{len(dummy_messages)} dummy-beskeder indsat i databasen.")
 
 if __name__ == "__main__":
+    config = load_config()
     initialize_database()
-    insert_dummy_messages()
+    insert_dummy_data(config)
