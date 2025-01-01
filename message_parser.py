@@ -10,8 +10,8 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler(LOG_FILE),  # Log til fil
-        logging.StreamHandler()        # Log til konsol
+        logging.FileHandler(LOG_FILE),
+        logging.StreamHandler()
     ]
 )
 logger = logging.getLogger("message_parser")
@@ -26,23 +26,29 @@ def load_config(filepath='config.txt'):
     cfg.read(filepath)
     return cfg
 
+def get_db_connection():
+    """
+    Opretter en SQLite-forbindelse med timeout for at undgå låseproblemer.
+    """
+    return sqlite3.connect(DB_PATH, timeout=10)
+
 def parse_message_dynamic(message, cfg):
     """
-    Parser en besked dynamisk baseret på regler defineret i config.txt.
+    Parser en besked dynamisk baseret på regler i config.txt.
     """
     parsed = {"raw_message": message}
     try:
-        # Fjern specialtegn
+        # Fjern <CR><LF> og <NUL>
         cleaned_message = message.replace("<CR><LF>", "\n").replace("<NUL>", "").strip()
 
-        # Gennemgå regler fra MessageParsing sektionen i config.txt
+        # Gennemgå regler fra config.txt
         if "MessageParsing" in cfg.sections():
             for key, pattern in cfg.items("MessageParsing"):
                 try:
                     match = re.search(pattern, cleaned_message)
                     parsed[key] = match.group(1).strip() if match else None
-                except re.error as regex_error:
-                    logger.error(f"Fejl i regex-mønster for {key}: {regex_error}")
+                except re.error as e:
+                    logger.error(f"Fejl i regex for {key}: {e}")
                     parsed[key] = None
 
     except Exception as e:
@@ -56,7 +62,7 @@ def update_message_in_db(message_id, parsed_message):
     Opdaterer en besked i databasen med de parsed felter.
     """
     try:
-        with sqlite3.connect(DB_PATH) as conn:
+        with get_db_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("""
                 UPDATE messages
@@ -64,7 +70,7 @@ def update_message_in_db(message_id, parsed_message):
                 WHERE id = ?
             """, (json.dumps(parsed_message), message_id))
             conn.commit()
-            logger.info(f"Besked ID {message_id} opdateret med parsed data.")
+            logger.info(f"Besked ID {message_id} markeret som opdateret.")
     except sqlite3.Error as e:
         logger.error(f"Fejl under opdatering af databasen: {e}")
 
@@ -74,7 +80,7 @@ def process_unparsed_messages():
     """
     try:
         cfg = load_config()
-        with sqlite3.connect(DB_PATH) as conn:
+        with get_db_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("""
                 SELECT id, raw_message FROM messages
