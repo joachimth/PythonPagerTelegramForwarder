@@ -82,14 +82,13 @@ default_alarmtype = Ukendt Alarmtype
 # Aktiver eller deaktiver indsættelse af dummy-beskeder
 enable_dummy_data = true
 
-# Dummy-beskeder (én per linje)
+# Marker dummy-beskeder med 'dummy' som felt for lettere identificering
 dummy_messages = 
     (A)M+V<CR><LF>Naturbrand-Halmstak<CR><LF>Seerdrupvej 25<CR><LF>4200 Slagelse<CR><LF>ild i halmstak. mange halmballer. tlf 5163-6114<NUL>
     (S)M<CR><LF>Naturbrand-Mindre brand<CR><LF>Pedersborg Torv 14<CR><LF>4180 Sorø<CR><LF>Det gløder fra træ.<NUL>
     DAGENS PRØVE TIL ISL
     (A)M+V<CR><LF>Naturbrand-Halmstak K: 1<CR><LF>Seerdrupvej 25<CR><LF>4200 Slagelse<CR><LF>ild i halmstak. mange halmballer. tlf 5163-6114<CR><LF>Job-nr: 47148623<CR><LF>?RSE_1/1_0_N55.20.53,5_E011.20.22,2<NUL>
     (L)M+V<CR><LF>ABA<CR><LF>Rådmandshaven boliger<CR><LF>Rådmandshaven 2-52<CR><LF>4230 Skælskør<CR><LF>K-178
-
 
 [LogSettings]
 # Logindstillinger for applikationen
