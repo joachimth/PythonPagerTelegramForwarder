@@ -65,7 +65,7 @@ specifik_bygningsbrand = Bygn.brand, Villa, Rækkehus
 specifik_dagens_prøve = DAGENS PRØVE
 
 # Positioneringsdata
-positioneringsdata = \?RSE_1/1, GPS, N\d{2}\.\d{2}\.\d{2}, E\d{2}\.\d{2}\.\d{2}
+positioneringsdata = \?RSE_1/1, GPS, N\d+\.\d+, E\d+\.\d+
 
 # Testbeskeder og andre
 teknisk_test = Teknik test, Test besked, Teknik besked
@@ -82,13 +82,16 @@ default_alarmtype = Ukendt Alarmtype
 # Aktiver eller deaktiver indsættelse af dummy-beskeder
 enable_dummy_data = true
 
-# Marker dummy-beskeder med 'dummy' som felt for lettere identificering
+# Dummy-beskeder (én per linje)
 dummy_messages = 
     (A)M+V<CR><LF>Naturbrand-Halmstak<CR><LF>Seerdrupvej 25<CR><LF>4200 Slagelse<CR><LF>ild i halmstak. mange halmballer. tlf 5163-6114<NUL>
     (S)M<CR><LF>Naturbrand-Mindre brand<CR><LF>Pedersborg Torv 14<CR><LF>4180 Sorø<CR><LF>Det gløder fra træ.<NUL>
     DAGENS PRØVE TIL ISL
     (A)M+V<CR><LF>Naturbrand-Halmstak K: 1<CR><LF>Seerdrupvej 25<CR><LF>4200 Slagelse<CR><LF>ild i halmstak. mange halmballer. tlf 5163-6114<CR><LF>Job-nr: 47148623<CR><LF>?RSE_1/1_0_N55.20.53,5_E011.20.22,2<NUL>
     (L)M+V<CR><LF>ABA<CR><LF>Rådmandshaven boliger<CR><LF>Rådmandshaven 2-52<CR><LF>4230 Skælskør<CR><LF>K-178
+    (L)M+V<CR><LF>Bygn.brand-Villa/Rækkehus<CR><LF>Mosegårdsvej 6<CR><LF>4173 Fjenneslev<CR><LF>ild i fyrrum
+    (A)M<CR><LF>Skraldespand i det fri-Brand K: 1<CR><LF>Byskov Alle 34<CR><LF>4200 Slagelse<CR><LF>ild i skrald. antændt af unge i område.<CR><LF>Job-nr: 46959343<CR><LF>?RSE_1/1_0_N55.24.25,4_E011.23.15,6
+    (A)M+V+P<CR><LF>ABA X<CR><LF>Psykiatri Region Sjælland<CR><LF>Grønningen 15<CR><LF>4200 Slagelse<CR><LF>ABA K-120<CR><LF>SPR + VTVG
 
 [LogSettings]
 # Logindstillinger for applikationen
