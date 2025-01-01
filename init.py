@@ -56,6 +56,21 @@ def run_message_parser():
         #logging.info("Venter 30 sekunder før næste parsing.")
         threading.Event().wait(30)
 
+def run_telegram_sender():
+    """
+    Starter en loop, der regelmæssigt kontrollerer og sender nye beskeder.
+    """
+    logging.info("Starter Telegram sender kontrol loop.")
+    telegram_sender = TelegramSender()
+    while True:
+        try:
+            telegram_sender.process_unsent_messages()
+            sleep(10)  # Kontroller hvert 10. sekund
+        except Exception as e:
+            logging.error(f"Fejl i Telegram sender kontrol loop: {e}")
+            sleep(30)  # Vent længere, hvis der opstår en fejl
+
+
 def main():
     """
     Hovedfunktion til at starte Flask-app, kalibreringsscript, initialisere database og køre hovedprogrammer.
@@ -89,10 +104,16 @@ def main():
         parser_thread = threading.Thread(target=run_message_parser)
         parser_thread.start()
 
+        # Start Telegram sender i separat tråd
+        telegram_thread = threading.Thread(target=run_telegram_sender)
+        telegram_thread.start()
+
+
         # Hold hovedtråden kørende
         flask_thread.join()
         receiver_thread.join()
         parser_thread.join()
+        telegram_thread.join()
 
     except Exception as e:
         logging.error(f"Fejl i init.py: {e}")
