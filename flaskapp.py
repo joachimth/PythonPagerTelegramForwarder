@@ -7,7 +7,15 @@ import configparser
 import os
 
 # Logger opsætning
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+LOG_FILE = "flaskapp.log"
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.FileHandler(LOG_FILE),  # Log til fil
+        logging.StreamHandler()        # Log til konsol
+    ]
+)
 logger = logging.getLogger("flaskapp")
 
 DB_PATH = "messages.db"
@@ -19,9 +27,6 @@ app.secret_key = "yoursecretkey"
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "login"
-
-# Dummy brugerdata
-#users = {"joachimth@nowhere.com": {"password": "changeme"}}
 
 # Dummy brugerdata
 users = {'joachimth@nowhere.com': {'password': 'changeme'}}
@@ -93,15 +98,22 @@ def latest_messages_json():
     API-endpoint til at hente de seneste beskeder.
     """
     try:
+        page = int(request.args.get("page", 1))
+        limit = int(request.args.get("limit", 20))
+        offset = (page - 1) * limit
+
         with sqlite3.connect(DB_PATH) as conn:
             cursor = conn.cursor()
             cursor.execute("""
                 SELECT id, raw_message, parsed_fields, timestamp
                 FROM messages
                 ORDER BY id DESC
-                LIMIT 200
-            """)
+                LIMIT ? OFFSET ?
+            """, (limit, offset))
             rows = cursor.fetchall()
+
+            cursor.execute("SELECT COUNT(*) FROM messages")
+            total = cursor.fetchone()[0]
 
         messages = []
         for row in rows:
@@ -113,14 +125,11 @@ def latest_messages_json():
                 "timestamp": row[3]
             })
 
-        return jsonify({"messages": messages})
+        return jsonify({"messages": messages, "total": total})
 
     except Exception as e:
         logger.error(f"Error retrieving messages: {e}")
         return jsonify({"error": "Could not retrieve messages."}), 500
-
-
-
 
 # Seneste beskeder side
 @app.route("/latest_messages")
