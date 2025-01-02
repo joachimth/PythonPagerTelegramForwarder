@@ -36,7 +36,7 @@ def insert_message_into_db(raw_message):
                 VALUES (?)
             """, (raw_message,))
             conn.commit()
-            logging.info(f"Rå besked gemt i databasen: {raw_message}")
+            #logging.info(f"Rå besked gemt i databasen: {raw_message}")
     except sqlite3.Error as e:
         logging.error(f"Fejl under indsættelse i databasen: {e}")
 
@@ -68,7 +68,7 @@ def start_message_receiver(cfg):
         )
     )
 
-    logging.info(f"Kommando udført: {command}")
+    #logging.info(f"Kommando udført: {command}")
 
     process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     decode_format = cfg.get('Encoding', 'encoding_format')
