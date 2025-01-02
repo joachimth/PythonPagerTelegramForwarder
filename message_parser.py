@@ -17,8 +17,9 @@ logging.basicConfig(
 logger = logging.getLogger("message_parser")
 
 DB_PATH = "messages.db"
+CONFIG_PATH = "config.txt"
 
-def load_config(filepath='config.txt'):
+def load_config(filepath=CONFIG_PATH):
     """
     Indlæser konfigurationsindstillinger fra config.txt.
     """
@@ -32,7 +33,7 @@ def parse_message_dynamic(message, cfg):
     """
     parsed = {"raw_message": message}
     try:
-        # Fjern <CR><LF> og <NUL>
+        # Fjern <CR><LF>, <NUL> og trim beskeden
         cleaned_message = message.replace("<CR><LF>", "\n").replace("<NUL>", "").strip()
 
         # Gennemgå dynamiske regler fra config.txt
@@ -40,35 +41,29 @@ def parse_message_dynamic(message, cfg):
             for key, pattern in cfg.items("MessageParsing"):
                 match = re.search(pattern, cleaned_message)
                 if match:
-                    parsed[key] = match.group(0).strip() if match.groups() else True
+                    parsed[key] = match.group(1).strip() if match.groups() else True
                 else:
                     parsed[key] = None
 
-        # Adresse og stednavn parsing
-        parsed['adresse'] = re.search(r"\n([^,]+)\n", cleaned_message)
-        parsed['adresse'] = parsed['adresse'].group(1).strip() if parsed['adresse'] else None
-
-        parsed['stednavn'] = re.search(r"^\(.\)M[+V]*\n(.*?)\n", cleaned_message)
+        # Tilføj standardfelter, hvis ikke fundet
+        parsed['stednavn'] = parsed.get('stednavn') or re.search(r"\n(.+)\n", cleaned_message)
         parsed['stednavn'] = parsed['stednavn'].group(1).strip() if parsed['stednavn'] else None
 
-        # Postnummer og by
-        parsed['postnr'] = re.search(r"\n(\d{4})\s", cleaned_message)
-        parsed['postnr'] = parsed['postnr'].group(1).strip() if parsed['postnr'] else None
+        parsed['adresse'] = parsed.get('adresse') or re.search(r"\n(.+)\n\d{4}", cleaned_message)
+        parsed['adresse'] = parsed['adresse'].group(1).strip() if parsed['adresse'] else None
 
-        parsed['by'] = re.search(r"\n\d{4}\s([^\n]+)", cleaned_message)
+        parsed['postnr'] = parsed.get('postnr') or re.search(r"\n(\d{4})\s", cleaned_message)
+        parsed['postnr'] = parsed['postnr'].group(1) if parsed['postnr'] else None
+
+        parsed['by'] = parsed.get('by') or re.search(r"\n\d{4}\s(.+)", cleaned_message)
         parsed['by'] = parsed['by'].group(1).strip() if parsed['by'] else None
 
-        # GPS-koordinater
-        gps_match = re.search(r"N(\d+\.\d+),\s*E(\d+\.\d+)", cleaned_message)
-        if gps_match:
-            parsed['latitude'], parsed['longitude'] = gps_match.groups()
-        else:
-            parsed['latitude'], parsed['longitude'] = None, None
-
-        # Link til Google Maps
-        if parsed['latitude'] and parsed['longitude']:
+        parsed['latlong'] = parsed.get('latlong') or re.search(r"N(\d+\.\d+),\s*E(\d+\.\d+)", cleaned_message)
+        if parsed['latlong']:
+            parsed['latitude'], parsed['longitude'] = parsed['latlong'].groups()
             parsed['linktilgooglemaps'] = f"https://www.google.com/maps?q={parsed['latitude']},{parsed['longitude']}"
-        elif parsed['adresse'] and parsed['postnr'] and parsed['by']:
+        elif parsed['adresse']:
+            # Brug adresse til Google Maps link, hvis GPS-koordinater mangler
             parsed['linktilgooglemaps'] = f"https://www.google.com/maps?q={parsed['adresse']},+{parsed['postnr']}+{parsed['by']}"
         else:
             parsed['linktilgooglemaps'] = None
