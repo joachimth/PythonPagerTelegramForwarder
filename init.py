@@ -4,7 +4,7 @@ import configparser
 import os
 from time import sleep
 from script_runner import run_script
-from telegram_sender import TelegramSender
+import telegram_sender
 
 # Logger opsætning
 LOG_FILE = "initlog.log"
@@ -58,6 +58,10 @@ def run_message_parser():
         try:
             if not run_script("message_parser.py"):
                 logger.error("message_parser.py fejlede.")
+            try:
+                process_unsent_messages()
+            except Exception as e:
+                logger.error(f"Fejl i Telegram sender kontrol loop: {e}")
             threading.Event().wait(30)  # Kontrollér hvert 30. sekund
         except Exception as e:
             logger.error(f"Fejl i message_parser loop: {e}")
@@ -68,10 +72,9 @@ def run_telegram_sender():
     Starter en loop, der regelmæssigt kontrollerer og sender nye beskeder.
     """
     logger.info("Starter Telegram sender kontrol loop.")
-    telegram_sender = TelegramSender()
     while True:
         try:
-            telegram_sender.process_unsent_messages()
+            process_unsent_messages()
             sleep(10)  # Kontroller hvert 10. sekund
         except Exception as e:
             logger.error(f"Fejl i Telegram sender kontrol loop: {e}")
@@ -111,14 +114,14 @@ def main():
         parser_thread.start()
 
         # Start Telegram sender i separat tråd
-        telegram_thread = threading.Thread(target=run_telegram_sender, daemon=True)
-        telegram_thread.start()
+        #telegram_thread = threading.Thread(target=run_telegram_sender, daemon=True)
+        #telegram_thread.start()
 
         # Hold hovedtråden kørende
         flask_thread.join()
         receiver_thread.join()
         parser_thread.join()
-        telegram_thread.join()
+        #telegram_thread.join()
 
     except Exception as e:
         logger.error(f"Fejl i init.py: {e}")
