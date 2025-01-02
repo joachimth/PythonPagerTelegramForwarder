@@ -87,7 +87,7 @@ def update_message_in_db(message_id, parsed_message):
                 WHERE id = ?
             """, (json.dumps(parsed_message), message_id))
             conn.commit()
-            logger.info(f"Besked ID {message_id} opdateret med parsed data.")
+            #logger.info(f"Besked ID {message_id} opdateret med parsed data.")
     except sqlite3.Error as e:
         logger.error(f"Fejl under opdatering af databasen: {e}")
 
@@ -105,12 +105,12 @@ def process_unparsed_messages():
             """)
             rows = cursor.fetchall()
 
-            logger.info(f"Fundet {len(rows)} beskeder, der skal parses.")
+            #logger.info(f"Fundet {len(rows)} beskeder, der skal parses.")
 
             for message_id, raw_message in rows:
-                logger.info(f"Behandler besked ID {message_id}: {raw_message}")
+                #logger.info(f"Behandler besked ID {message_id}: {raw_message}")
                 parsed_message = parse_message_dynamic(raw_message, cfg)
-                logger.info(f"Parsed besked: {parsed_message}")
+                #logger.info(f"Parsed besked: {parsed_message}")
                 update_message_in_db(message_id, parsed_message)
 
     except sqlite3.Error as e:
