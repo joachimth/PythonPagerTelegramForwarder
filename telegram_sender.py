@@ -31,7 +31,7 @@ class TelegramSender:
         """
         try:
             self.bot.send_message(self.chat_id, message)
-            logging.info("Besked sendt til Telegram.")
+            #logging.info("Besked sendt til Telegram.")
             return True
         except Exception as e:
             logging.error(f"Fejl under afsendelse af besked: {e}")
@@ -51,7 +51,7 @@ def process_unsent_messages():
             """)
             unsent_messages = cursor.fetchall()
 
-            logging.info(f"Fundet {len(unsent_messages)} beskeder, der skal sendes.")
+            #logging.info(f"Fundet {len(unsent_messages)} beskeder, der skal sendes.")
 
             for message_id, raw_message in unsent_messages:
                 logging.info(f"Sender besked ID {message_id}: {raw_message}")
@@ -62,7 +62,7 @@ def process_unsent_messages():
                         WHERE id = ?
                     """, (message_id,))
             conn.commit()
-            logging.info("Alle beskeder i køen er behandlet.")
+            #logging.info("Alle beskeder i køen er behandlet.")
     except Exception as e:
         logging.error(f"Fejl under behandling af beskeder: {e}")
 
